@@ -1,0 +1,91 @@
+{% extends 'musubiapp/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h2 class="mb-0">🎉 Order Confirmed!</h2>
+                </div>
+                <div class="card-body text-center py-5">
+                    <div class="display-1 text-success mb-4">✅</div>
+                    <h3 class="text-success mb-3">Thank You for Your Order!</h3>
+                    <p class="lead">Your order has been received and is being prepared.</p>
+                    
+                    <!-- Order Details -->
+                    <div class="row justify-content-center mb-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Order #{{ order.id }}</h5>
+                                    <div class="row text-start">
+                                        <div class="col-6">
+                                            <strong>Status:</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="badge bg-warning text-dark">{{ order.get_status_display }}</span>
+                                        </div>
+                                        
+                                        <div class="col-6">
+                                            <strong>Total:</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            ₱{{ order.total_price }}
+                                        </div>
+                                        
+                                        <div class="col-6">
+                                            <strong>Delivery:</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            {{ order.get_delivery_method_display }}
+                                        </div>
+                                        
+                                        <div class="col-6">
+                                            <strong>Order Time:</strong>
+                                        </div>
+                                        <div class="col-6">
+                                            {{ order.created_at|date:"M d, Y H:i" }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="mb-4">
+                        <h5>Order Items</h5>
+                        {% for item in order_items %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span>{{ item.quantity }} x {{ item.product.name }}</span>
+                            <span>₱{{ item.get_total }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="alert alert-info">
+                        <h6>What's Next?</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li>📱 You will receive an order confirmation</li>
+                            <li>⏱️ Estimated preparation time: 15-25 minutes</li>
+                            <li>🔔 We'll notify you when your order is ready</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-center">
+                        <a href="{% url 'order_history' %}" class="btn btn-primary">
+                            <i class="bi bi-clock-history"></i> View Order History
+                        </a>
+                        <a href="{% url 'product_list' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus-circle"></i> Order More
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feedback Detail - Admin</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'musubiapp/css/design-system.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #1D3557;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 1200px;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #1D3557;
+            margin-bottom: 10px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #E63946;
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Feedback Card */
+        .feedback-detail-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .feedback-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .badges {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .badge-general { background: #457B9D; }
+        .badge-suggestion { background: #06D6A0; }
+        .badge-complaint { background: #E63946; }
+        .badge-compliment { background: #FFB703; }
+        .badge-bug_report { background: #6C757D; }
+        
+        .badge-new { background: #FFB703; }
+        .badge-in_review { background: #457B9D; }
+        .badge-resolved { background: #06D6A0; }
+        .badge-closed { background: #6C757D; }
+        
+        .feedback-date {
+            color: #999;
+            font-size: 0.95em;
+        }
+        
+        .customer-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        
+        .customer-info strong {
+            color: #E63946;
+            font-size: 1.1em;
+        }
+        
+        .feedback-subject {
+            font-size: 2em;
+            color: #1D3557;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .feedback-message {
+            color: #333;
+            line-height: 1.8;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-left: 4px solid #E63946;
+            border-radius: 8px;
+        }
+        
+        /* Response Section */
+        .response-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        
+        .response-section h2 {
+            color: #1D3557;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .existing-response {
+            background: #e8f5e9;
+            border-left: 4px solid #06D6A0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .existing-response strong {
+            color: #06D6A0;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .existing-response p {
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #1D3557;
+            font-size: 1.1em;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+        
+        .form-control:focus {
+            border-color: #E63946;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+        }
+        
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #C1121F, #A01018);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6C757D;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .status-update {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .status-update h3 {
+            color: #1D3557;
+            margin-bottom: 15px;
+        }
+        
+        .status-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .menu-item span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .feedback-detail-card,
+            .response-section {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav>
+            <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_feedback_list' %}" class="menu-item">
+                <span class="menu-icon">💬</span>
+                <span>Feedback</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <a href="{% url 'admin_feedback_list' %}" class="back-link">
+            ← Back to Feedback List
+        </a>
+        
+        <div class="page-header">
+            <h1>Feedback Details</h1>
+        </div>
+        
+        <!-- Feedback Detail -->
+        <div class="feedback-detail-card">
+            <div class="feedback-meta">
+                <div class="badges">
+                    <span class="badge badge-{{ feedback.feedback_type }}">
+                        {{ feedback.get_feedback_type_display }}
+                    </span>
+                    <span class="badge badge-{{ feedback.status }}">
+                        {{ feedback.get_status_display }}
+                    </span>
+                </div>
+                <span class="feedback-date">
+                    Submitted: {{ feedback.created_at|date:"F d, Y - h:i A" }}
+                </span>
+            </div>
+            
+            <div class="customer-info">
+                <strong>👤 Customer:</strong> {{ feedback.customer.user.username }} ({{ feedback.customer.user.email }})
+            </div>
+            
+            <h2 class="feedback-subject">{{ feedback.subject }}</h2>
+            
+            <div class="feedback-message">
+                {{ feedback.message }}
+            </div>
+        </div>
+        
+        <!-- Response Section -->
+        <div class="response-section">
+            <h2>{% if feedback.admin_response %}Update Response{% else %}Send Response{% endif %}</h2>
+            
+            {% if feedback.admin_response %}
+            <div class="existing-response">
+                <strong>✅ Current Response (by {{ feedback.responded_by.username }} on {{ feedback.responded_at|date:"M d, Y - h:i A" }}):</strong>
+                <p>{{ feedback.admin_response }}</p>
+            </div>
+            {% endif %}
+            
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="respond">
+                
+                <div class="form-group">
+                    <label for="response">Your Response *</label>
+                    <textarea name="response" id="response" class="form-control" rows="6" 
+                              placeholder="Type your response to the customer..." required>{{ feedback.admin_response }}</textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    📤 Send Response
+                </button>
+            </form>
+        </div>
+        
+        <!-- Status Update -->
+        <div class="status-update">
+            <h3>Update Status</h3>
+            <form method="post" style="display: inline;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_status">
+                <div class="status-buttons">
+                    <button type="submit" name="status" value="new" class="btn btn-secondary" 
+                            {% if feedback.status == 'new' %}disabled{% endif %}>
+                        🆕 New
+                    </button>
+                    <button type="submit" name="status" value="in_review" class="btn btn-secondary"
+                            {% if feedback.status == 'in_review' %}disabled{% endif %}>
+                        👀 In Review
+                    </button>
+                    <button type="submit" name="status" value="resolved" class="btn btn-secondary"
+                            {% if feedback.status == 'resolved' %}disabled{% endif %}>
+                        ✅ Resolved
+                    </button>
+                    <button type="submit" name="status" value="closed" class="btn btn-secondary"
+                            {% if feedback.status == 'closed' %}disabled{% endif %}>
+                        🔒 Closed
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

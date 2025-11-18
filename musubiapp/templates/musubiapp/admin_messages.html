@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messages - Admin Dashboard</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #2c3e50;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        
+        .compose-btn {
+            padding: 12px 28px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .compose-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #ff6b6b;
+            border-bottom-color: #ff6b6b;
+        }
+        
+        .tab:hover {
+            color: #ff6b6b;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .message-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .message-item {
+            padding: 20px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .message-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .message-item.unread {
+            background: #fff3cd;
+        }
+        
+        .message-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+        
+        .message-content {
+            flex: 1;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .message-from {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .message-date {
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        .message-subject {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .message-preview {
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .message-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9em;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #ff5252;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        /* Compose Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .modal-header h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #ff6b6b;
+            transform: rotate(90deg);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #ff6b6b;
+        }
+        
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+        
+        .unread-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+        
+        /* Messages */
+        .messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item active">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+        
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>💬 Messages
+                    {% if unread_count > 0 %}
+                        <span class="unread-badge">{{ unread_count }} New</span>
+                    {% endif %}
+                </h1>
+            </div>
+            <button class="compose-btn" onclick="openComposeModal()">✉️ Compose Message</button>
+        </div>
+        
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('inbox')">📥 Inbox ({{ received_messages.count }})</button>
+            <button class="tab" onclick="showTab('sent')">📤 Sent ({{ sent_messages.count }})</button>
+        </div>
+        
+        <!-- Inbox Tab -->
+        <div id="inbox" class="tab-content active">
+            <div class="message-list">
+                {% if received_messages %}
+                    {% for msg in received_messages %}
+                    <div class="message-item {% if not msg.is_read %}unread{% endif %}" onclick="window.location.href='{% url 'admin_view_message' msg.id %}'">
+                        <div class="message-icon">{{ msg.sender.username|slice:":1"|upper }}</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-from">From: {{ msg.sender.username }}</span>
+                                <span class="message-date">{{ msg.created_at|date:"M d, Y - h:i A" }}</span>
+                            </div>
+                            <div class="message-subject">{{ msg.subject }}</div>
+                            <div class="message-preview">{{ msg.message|truncatewords:15 }}</div>
+                        </div>
+                        <div class="message-actions" onclick="event.stopPropagation()">
+                            <a href="{% url 'admin_view_message' msg.id %}" class="btn-sm btn-primary">View</a>
+                            <a href="#" class="btn-sm btn-danger" onclick="event.preventDefault(); showConfirmModal('Delete this message? This action cannot be undone.', function() { window.location.href = '{% url 'admin_delete_message' msg.id %}'; })">Delete</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h3>📝 No Messages</h3>
+                        <p>You haven't received any messages yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sent Tab -->
+        <div id="sent" class="tab-content">
+            <div class="message-list">
+                {% if sent_messages %}
+                    {% for msg in sent_messages %}
+                    <div class="message-item" onclick="window.location.href='{% url 'admin_view_message' msg.id %}'">
+                        <div class="message-icon">{{ msg.recipient.username|slice:":1"|upper }}</div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-from">To: {{ msg.recipient.username }}</span>
+                                <span class="message-date">{{ msg.created_at|date:"M d, Y - h:i A" }}</span>
+                            </div>
+                            <div class="message-subject">{{ msg.subject }}</div>
+                            <div class="message-preview">{{ msg.message|truncatewords:15 }}</div>
+                        </div>
+                        <div class="message-actions" onclick="event.stopPropagation()">
+                            <a href="{% url 'admin_view_message' msg.id %}" class="btn-sm btn-primary">View</a>
+                            <a href="#" class="btn-sm btn-danger" onclick="event.preventDefault(); showConfirmModal('Delete this message? This action cannot be undone.', function() { window.location.href = '{% url 'admin_delete_message' msg.id %}'; })">Delete</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h3>📝 No Sent Messages</h3>
+                        <p>You haven't sent any messages yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+    
+    <!-- Compose Message Modal -->
+    <div id="composeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✉️ Compose Message</h2>
+                <button class="close-modal" onclick="closeComposeModal()">&times;</button>
+            </div>
+            <form method="post" action="{% url 'admin_send_message' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">To (Customer):</label>
+                    <select name="recipient" class="form-control" required>
+                        <option value="">Select Customer</option>
+                        {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.username }} ({{ customer.email }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Subject:</label>
+                    <input type="text" name="subject" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message:</label>
+                    <textarea name="message" class="form-control" required></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-sm btn-danger" onclick="closeComposeModal()">Cancel</button>
+                    <button type="submit" class="btn-sm btn-primary">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function openComposeModal() {
+            document.getElementById('composeModal').classList.add('active');
+        }
+        
+        function closeComposeModal() {
+            document.getElementById('composeModal').classList.remove('active');
+        }
+        
+        // Close modal on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeComposeModal();
+            }
+        });
+        
+        // Close modal on outside click
+        document.getElementById('composeModal').addEventListener('click', (e) => {
+            if (e.target.id === 'composeModal') {
+                closeComposeModal();
+            }
+        });
+    </script>
+    <!-- Include Confirmation Modal -->
+    {% include 'musubiapp/includes/confirm_modal.html' %}
+</body>
+</html>

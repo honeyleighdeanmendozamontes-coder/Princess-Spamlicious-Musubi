@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Notifications - Spamlicious Musubi</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'musubiapp/css/design-system.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #1D3557;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #1D3557;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #E63946;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #E63946;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .notifications-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #E63946;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .notifications-header h1 {
+            font-size: 2.5em;
+            color: #1D3557;
+            margin: 0;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #1D3557, #457B9D);
+            color: white;
+            box-shadow: 0 4px 12px rgba(29,53,87,0.3);
+        }
+        
+        .btn-back:hover {
+            background: linear-gradient(135deg, #457B9D, #1D3557);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(29,53,87,0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        /* Notifications List */
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .notification-item {
+            display: flex;
+            gap: 20px;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            border-left: 5px solid #e0e0e0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+        
+        .notification-item.unread {
+            background: linear-gradient(135deg, #fff9e6 0%, #fffbf0 100%);
+            border-left-color: #E63946;
+        }
+        
+        .notification-icon {
+            font-size: 3em;
+            flex-shrink: 0;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-content h3 {
+            font-size: 1.4em;
+            color: #1D3557;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        
+        .notification-content p {
+            color: #666;
+            margin: 0 0 12px 0;
+            line-height: 1.6;
+            font-size: 1.05em;
+        }
+        
+        .notification-meta {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .notification-time {
+            font-size: 0.9em;
+            color: #999;
+        }
+        
+        .order-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .order-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(230,57,70,0.4);
+        }
+        
+        .notification-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .btn-accept {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #06D6A0, #05B887);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(6,214,160,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-accept:hover {
+            background: linear-gradient(135deg, #05B887, #06D6A0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(6,214,160,0.4);
+        }
+        
+        .btn-accept:active {
+            transform: translateY(0);
+        }
+        
+        .btn-icon {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .btn-icon:hover {
+            background: #f0f0f0;
+            transform: scale(1.1);
+        }
+        
+        .btn-icon.delete:hover {
+            background: #ffebee;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-preparing {
+            background: #cfe2ff;
+            color: #084298;
+        }
+        
+        .status-shipping {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-completed {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #842029;
+        }
+        
+        /* Clickable Pending Status */
+        .clickable-pending {
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .clickable-pending:hover {
+            background: #ffc107;
+            color: #212529;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.4);
+        }
+        
+        .clickable-pending:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+        
+        .clickable-pending:hover:before {
+            left: 100%;
+        }
+        
+        .clickable-pending:active {
+            transform: scale(0.98);
+        }
+        
+        /* Empty State */
+        .empty-notifications {
+            text-align: center;
+            padding: 100px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .empty-icon {
+            font-size: 6em;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .empty-notifications h3 {
+            font-size: 2em;
+            color: #1D3557;
+            margin-bottom: 10px;
+        }
+        
+        .empty-notifications p {
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        /* Messages */
+        .messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-left: 4px solid #06D6A0;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #FFB703;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .menu-item span:not(.menu-icon),
+            .sidebar-footer {
+                display: none;
+            }
+            
+            .menu-item {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .notifications-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .notification-item {
+                flex-direction: column;
+            }
+            
+            .notification-actions {
+                flex-direction: row;
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+        
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="notifications-section">
+            <div class="notifications-header">
+                <div class="header-left">
+                    <h1>🔔 Admin Notifications</h1>
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-back">← Back to Dashboard</a>
+                </div>
+                <div class="header-actions">
+                    {% if unread_count > 0 %}
+                    <form method="post" action="{% url 'mark_all_notifications_read' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-secondary">Mark All as Read</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Messages -->
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if notifications %}
+            <div class="notifications-list">
+                {% for notification in notifications %}
+                <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                    <div class="notification-icon">
+                        {% if notification.notification_type == 'new_order' %}
+                            🛍️
+                        {% elif notification.notification_type == 'order_preparing' %}
+                            👨‍🍳
+                        {% elif notification.notification_type == 'order_shipping' %}
+                            🚚
+                        {% elif notification.notification_type == 'order_completed' %}
+                            ✅
+                        {% elif notification.notification_type == 'order_cancelled' %}
+                            ❌
+                        {% endif %}
+                    </div>
+                    <div class="notification-content">
+                        <h3>{{ notification.title }}</h3>
+                        <p>{{ notification.message }}</p>
+                        <div class="notification-meta">
+                            <span class="notification-time">⏰ {{ notification.created_at|timesince }} ago</span>
+                            {% if notification.order %}
+                            <a href="{% url 'admin_order_detail' notification.order.id %}" class="order-badge">
+                                📦 View Order #{{ notification.order.id }}
+                            </a>
+                            {% if notification.order.status == 'pending' %}
+                            <a href="{% url 'admin_order_detail' notification.order.id %}?action=update_status" class="status-badge status-{{ notification.order.status }} clickable-pending" title="Click to update order status">
+                                {{ notification.order.get_status_display }} 📝
+                            </a>
+                            {% else %}
+                            <span class="status-badge status-{{ notification.order.status }}">
+                                {{ notification.order.get_status_display }}
+                            </span>
+                            {% endif %}
+                            {% elif notification.reservation %}
+                            <a href="{% url 'admin_reservation_detail' notification.reservation.id %}" class="order-badge">
+                                📅 View Reservation #{{ notification.reservation.id }}
+                            </a>
+                            {% if notification.reservation.status == 'pending' %}
+                            <a href="{% url 'admin_reservation_detail' notification.reservation.id %}?action=update_status" class="status-badge status-{{ notification.reservation.status }} clickable-pending" title="Click to update reservation status">
+                                {{ notification.reservation.get_status_display }} 📝
+                            </a>
+                            {% else %}
+                            <span class="status-badge status-{{ notification.reservation.status }}">
+                                {{ notification.reservation.get_status_display }}
+                            </span>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        {% if notification.notification_type == 'new_order' and notification.order.status == 'pending' %}
+                        <form method="post" action="{% url 'accept_order' notification.order.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-accept">
+                                ✅ Accept Order
+                            </button>
+                        </form>
+                        {% elif notification.notification_type == 'new_reservation' and notification.reservation.status == 'pending' %}
+                        <form method="post" action="{% url 'admin_reservation_detail' notification.reservation.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="confirmed">
+                            <button type="submit" class="btn-accept">
+                                ✅ Confirm Reservation
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <div style="display: flex; gap: 10px;">
+                            {% if not notification.is_read %}
+                            <form method="post" action="{% url 'mark_notification_read' notification.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-icon" title="Mark as read">✓</button>
+                            </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'delete_notification' notification.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-icon delete" title="Delete">🗑️</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-notifications">
+                <div class="empty-icon">🔔</div>
+                <h3>No Notifications</h3>
+                <p>You're all caught up! We'll notify you when there are new orders or updates.</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

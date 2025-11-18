@@ -1,0 +1,1136 @@
+{% extends 'musubiapp/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="cart-section">
+        <div class="cart-header">
+            <h2>🛒 Your Shopping Cart</h2>
+            <p>Review your order before checkout</p>
+        </div>
+
+        {% if cart_items %}
+        <div class="cart-content">
+            <!-- Cart Items -->
+            <div class="cart-items">
+                <div class="cart-card">
+                    <h3>Order Items ({{ cart_items|length }})</h3>
+                    {% for item in cart_items %}
+                    <div class="cart-item">
+                        <div class="item-image">
+                            {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                 class="item-img">
+                            {% else %}
+                            <div class="item-placeholder">
+                                🍙
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <h4>{{ item.product.name }}</h4>
+                            <p class="item-description">{{ item.product.description|truncatewords:8 }}</p>
+                            <p class="item-price">₱{{ item.product.price }} each</p>
+                        </div>
+                        <div class="item-quantity">
+                            <form method="post" action="{% url 'update_cart' item.id %}" class="quantity-form">
+                                {% csrf_token %}
+                                <input type="number" name="quantity" value="{{ item.quantity }}" 
+                                       min="1" max="{{ item.product.stock }}" 
+                                       class="quantity-input">
+                                <input type="hidden" name="action" value="update">
+                                <button type="submit" class="btn-update">
+                                    🔄
+                                </button>
+                            </form>
+                            <small class="stock-info">Max: {{ item.product.stock }}</small>
+                        </div>
+                        <div class="item-total">
+                            <strong>₱{{ item.get_total }}</strong>
+                        </div>
+                        <div class="item-actions">
+                            <form method="post" action="{% url 'update_cart' item.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <button type="submit" class="btn-remove">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Clear Cart Button -->
+                    <div class="clear-cart">
+                        <form method="post" action="{% url 'clear_cart' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-clear">
+                                🗑️ Clear Entire Cart
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="order-summary">
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <h3>Order Summary</h3>
+                    </div>
+                    <div class="summary-body">
+                        <div class="summary-line">
+                            <span>Subtotal:</span>
+                            <span>₱{{ total }}</span>
+                        </div>
+                        <div class="summary-line">
+                            <span>Delivery Fee:</span>
+                            <span>₱50</span>
+                        </div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-line total">
+                            <strong>Total:</strong>
+                            <strong>₱{{ total|add:50 }}</strong>
+                        </div>
+                        
+                        <div class="summary-actions">
+                            <button class="btn btn-primary checkout-btn" onclick="showCheckoutModal()">
+                                🛍️ Proceed to Checkout
+                            </button>
+                            <a href="{% url 'product_list' %}" class="btn btn-outline continue-shopping">
+                                ← Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-cart">
+            <div class="empty-icon">🛒</div>
+            <h3>Your cart is empty</h3>
+            <p>Add some delicious musubi to get started!</p>
+            <a href="{% url 'product_list' %}" class="btn btn-primary">
+                🍙 Browse Our Menu
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.cart-section {
+    padding: 40px 0;
+}
+
+.cart-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.cart-header h2 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.cart-header p {
+    font-size: 1.2em;
+    color: #666;
+}
+
+.cart-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.cart-card, .summary-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    border: 1px solid #e9ecef;
+}
+
+.cart-card h3, .summary-header h3 {
+    color: #1D3557;
+    margin-bottom: 25px;
+    font-size: 1.5em;
+    border-bottom: 2px solid #E9ECEF;
+    padding-bottom: 15px;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 80px 2fr 1fr 1fr auto;
+    gap: 20px;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.item-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.item-placeholder {
+    width: 60px;
+    height: 60px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    color: #666;
+}
+
+.item-details h4 {
+    color: #1D3557;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+}
+
+.item-description {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.item-price {
+    color: #E63946;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.quantity-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-input {
+    width: 70px;
+    padding: 8px 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.quantity-input:focus {
+    border-color: #E63946;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+}
+
+.btn-update {
+    background: linear-gradient(135deg, #E63946, #C1121F);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(230, 57, 70, 0.3);
+}
+
+.btn-update:hover {
+    background: linear-gradient(135deg, #C1121F, #A01018);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+}
+
+.stock-info {
+    color: #666;
+    font-size: 0.8em;
+    margin-top: 5px;
+    display: block;
+}
+
+.item-total {
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #1D3557;
+}
+
+.btn-remove {
+    background: linear-gradient(135deg, #E63946, #C1121F);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(230, 57, 70, 0.3);
+}
+
+.btn-remove:hover {
+    background: linear-gradient(135deg, #C1121F, #A01018);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+}
+
+.clear-cart {
+    text-align: right;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.btn-clear {
+    background: linear-gradient(135deg, #FFB703, #FB8500);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    box-shadow: 0 3px 10px rgba(255, 183, 3, 0.3);
+}
+
+.btn-clear:hover {
+    background: linear-gradient(135deg, #FB8500, #E07B00);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 183, 3, 0.4);
+}
+
+/* Order Summary */
+.summary-header {
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+    font-size: 1em;
+}
+
+.summary-line.total {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #E63946;
+    border-top: 1px solid #E9ECEF;
+    padding-top: 15px;
+    margin-top: 20px;
+}
+
+.summary-divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 15px 0;
+}
+
+.summary-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.checkout-btn, .continue-shopping {
+    padding: 15px 20px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 1em;
+}
+
+.checkout-btn {
+    background: linear-gradient(135deg, #E63946, #C1121F);
+    color: white;
+    border: 2px solid #E63946;
+    box-shadow: 0 3px 12px rgba(230, 57, 70, 0.3);
+}
+
+.checkout-btn:hover {
+    background: linear-gradient(135deg, #C1121F, #A01018);
+    border-color: #C1121F;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+}
+
+.continue-shopping {
+    background: transparent;
+    color: #457B9D;
+    border: 2px solid #457B9D;
+}
+
+.continue-shopping:hover {
+    background: linear-gradient(135deg, #457B9D, #1D3557);
+    color: white;
+    border-color: #457B9D;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(69, 123, 157, 0.3);
+}
+
+/* Empty Cart */
+.empty-cart {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.empty-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    color: #666;
+}
+
+.empty-cart h3 {
+    color: #1D3557;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+}
+
+.empty-cart p {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 1.1em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cart-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .cart-item {
+        grid-template-columns: 60px 1fr;
+        gap: 15px;
+        padding: 15px 0;
+    }
+    
+    .item-quantity,
+    .item-total,
+    .item-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .item-quantity {
+        justify-content: flex-start;
+    }
+    
+    .item-total {
+        justify-content: flex-end;
+        font-size: 1.2em;
+    }
+    
+    .item-actions {
+        justify-content: center;
+    }
+    
+    .quantity-form {
+        justify-content: flex-start;
+    }
+    
+    .cart-header h2 {
+        font-size: 2em;
+    }
+    
+    .empty-cart {
+        padding: 60px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .cart-card, .summary-card {
+        padding: 20px;
+    }
+    
+    .cart-header h2 {
+        font-size: 1.8em;
+    }
+    
+    .empty-icon {
+        font-size: 3em;
+    }
+}
+
+/* Checkout Modal */
+.checkout-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkout-modal.active {
+    display: flex;
+}
+
+.checkout-modal-content {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.checkout-modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.checkout-modal-header h2 {
+    font-size: 2.2em;
+    color: #1D3557;
+    margin-bottom: 10px;
+}
+
+.checkout-modal-header p {
+    color: #666;
+    font-size: 1.1em;
+}
+
+.checkout-form-group {
+    margin-bottom: 25px;
+}
+
+.checkout-form-label {
+    display: block;
+    font-weight: 600;
+    color: #1D3557;
+    margin-bottom: 8px;
+    font-size: 1.05em;
+}
+
+.checkout-form-input,
+.checkout-form-textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.checkout-form-input:focus,
+.checkout-form-textarea:focus {
+    border-color: #E63946;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+}
+
+.checkout-form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.checkout-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.checkout-summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 1.05em;
+}
+
+.checkout-summary-line.total {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #E63946;
+    padding-top: 15px;
+    border-top: 2px solid #DEE2E6;
+    margin-top: 10px;
+}
+
+.checkout-modal-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.checkout-modal-btn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.checkout-modal-btn-confirm {
+    background: linear-gradient(135deg, #E63946, #C1121F);
+    color: white;
+    box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+}
+
+.checkout-modal-btn-confirm:hover {
+    background: linear-gradient(135deg, #C1121F, #A01018);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+}
+
+.checkout-modal-btn-cancel {
+    background: #E9ECEF;
+    color: #1D3557;
+}
+
+.checkout-modal-btn-cancel:hover {
+    background: #DEE2E6;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Modal Styles */
+.modal-order-details {
+    margin-bottom: 25px;
+}
+
+.modal-order-details h3 {
+    color: #1D3557;
+    margin-bottom: 20px;
+    font-size: 1.3em;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px;
+}
+
+.modal-order-items {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.modal-order-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    background: #f8f9fa;
+}
+
+.modal-item-image {
+    flex-shrink: 0;
+}
+
+.modal-product-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+.modal-item-placeholder {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    color: white;
+    border-radius: 8px;
+}
+
+.modal-item-info {
+    flex: 1;
+}
+
+.modal-item-info h4 {
+    color: #1D3557;
+    font-size: 1em;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.modal-item-info p {
+    color: #6c757d;
+    font-size: 0.85em;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.modal-item-meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.modal-price {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 0.85em;
+}
+
+.modal-qty {
+    color: #495057;
+    font-size: 0.85em;
+    background: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.modal-item-total {
+    color: #E63946;
+    font-size: 1em;
+    font-weight: 700;
+}
+
+/* Address Section */
+.modal-address-section {
+    margin: 25px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.modal-address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.modal-address-header h4 {
+    color: #1D3557;
+    margin: 0;
+    font-size: 1em;
+}
+
+.btn-edit-address {
+    background: #E63946;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-edit-address:hover {
+    background: #C1121F;
+    transform: translateY(-1px);
+}
+
+.current-address-card {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.current-address-card p {
+    margin: 0;
+    color: #495057;
+    line-height: 1.5;
+}
+
+.no-address-card {
+    background: #fff3cd;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ffeaa7;
+}
+
+.no-address-card p {
+    margin: 0;
+    color: #856404;
+    font-style: italic;
+}
+
+.modal-address-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9em;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-primary {
+    background: #E63946;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9em;
+}
+
+.btn-primary:hover {
+    background: #C1121F;
+}
+
+/* Payment Info */
+.modal-payment-info {
+    margin: 25px 0;
+}
+
+.modal-payment-info h4 {
+    color: #1D3557;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.modal-payment-box {
+    background: #f8f9fa;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.modal-cod-icon {
+    font-size: 2em;
+    flex-shrink: 0;
+}
+
+.modal-cod-details h5 {
+    color: #28a745;
+    font-size: 1em;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.modal-cod-details p {
+    color: #6c757d;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    font-size: 0.9em;
+}
+
+.modal-cod-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-cod-benefits li {
+    color: #495057;
+    margin-bottom: 5px;
+    font-size: 0.85em;
+}
+</style>
+
+<!-- Checkout Modal -->
+<div class="checkout-modal" id="checkoutModal">
+    <div class="checkout-modal-content">
+        <div class="checkout-modal-header">
+            <h2>🛍️ Complete Your Order</h2>
+            <p>Please provide your delivery details</p>
+        </div>
+        
+        <form method="post" action="{% url 'checkout' %}" id="checkoutForm">
+            {% csrf_token %}
+            
+            <!-- Detailed Order Items -->
+            <div class="modal-order-details">
+                <h3>📦 Order Details</h3>
+                <div class="modal-order-items">
+                    {% for item in cart_items %}
+                    <div class="modal-order-item">
+                        <div class="modal-item-image">
+                            {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="modal-product-img">
+                            {% else %}
+                                <div class="modal-item-placeholder">🍙</div>
+                            {% endif %}
+                        </div>
+                        <div class="modal-item-info">
+                            <h4>{{ item.product.name }}</h4>
+                            <p>{{ item.product.description|truncatewords:12 }}</p>
+                            <div class="modal-item-meta">
+                                <span class="modal-price">₱{{ item.product.price }} each</span>
+                                <span class="modal-qty">Qty: {{ item.quantity }}</span>
+                            </div>
+                        </div>
+                        <div class="modal-item-total">₱{{ item.get_total }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="checkout-summary">
+                <div class="checkout-summary-line">
+                    <span>Subtotal:</span>
+                    <span>₱{{ total }}</span>
+                </div>
+                <div class="checkout-summary-line">
+                    <span>Delivery Fee:</span>
+                    <span>₱50</span>
+                </div>
+                <div class="checkout-summary-line total">
+                    <span>Total Amount:</span>
+                    <span>₱{{ total|add:50 }}</span>
+                </div>
+            </div>
+
+            <!-- Address Display and Edit -->
+            <div class="modal-address-section">
+                <div class="modal-address-header">
+                    <h4>📍 Current Delivery Address</h4>
+                    <button type="button" class="btn-edit-address" onclick="toggleModalAddressEdit()">✏️ Edit Address</button>
+                </div>
+                <div class="modal-address-display" id="modalAddressDisplay">
+                    {% if customer_address %}
+                    <div class="current-address-card">
+                        <p>{{ customer_address }}</p>
+                    </div>
+                    {% else %}
+                    <div class="no-address-card">
+                        <p>No saved address yet. Please add one.</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-address-edit" id="modalAddressEdit" style="display: none;">
+                    <label for="delivery_address" class="checkout-form-label">Update Delivery Address *</label>
+                    <textarea
+                        class="checkout-form-textarea"
+                        id="delivery_address"
+                        name="delivery_address"
+                        placeholder="Enter your complete delivery address..."
+                        required
+                    >{{ customer_address }}</textarea>
+                    <div class="modal-address-edit-actions">
+                        <button type="button" class="btn-secondary" onclick="cancelModalAddressEdit()">Cancel</button>
+                        <button type="button" class="btn-primary" onclick="saveModalAddressEdit()">Save Address</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="modal-payment-info">
+                <h4>💰 Payment Method</h4>
+                <div class="modal-payment-box">
+                    <div class="modal-cod-icon">💵</div>
+                    <div class="modal-cod-details">
+                        <h5>Cash on Delivery Only</h5>
+                        <p>Have the exact amount ready when your order arrives.</p>
+                        <ul class="modal-cod-benefits">
+                            <li>✅ Pay upon delivery</li>
+                            <li>✅ No upfront payment needed</li>
+                            <li>✅ Inspect before paying</li>
+                        </ul>
+                    </div>
+                </div>
+                <input type="hidden" name="payment_method" value="cod">
+            </div>
+            
+            <div class="checkout-modal-buttons">
+                <button type="button" class="checkout-modal-btn checkout-modal-btn-cancel" onclick="hideCheckoutModal()">
+                    ← Cancel
+                </button>
+                <button type="submit" class="checkout-modal-btn checkout-modal-btn-confirm">
+                    Place Order 🎉
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showCheckoutModal() {
+    document.getElementById('checkoutModal').classList.add('active');
+}
+
+function hideCheckoutModal() {
+    document.getElementById('checkoutModal').classList.remove('active');
+}
+
+// Close modal when clicking outside
+document.getElementById('checkoutModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideCheckoutModal();
+    }
+});
+
+// Close modal on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideCheckoutModal();
+    }
+});
+
+// Modal Address Edit Functions
+function toggleModalAddressEdit() {
+    const addressDisplay = document.getElementById('modalAddressDisplay');
+    const addressEdit = document.getElementById('modalAddressEdit');
+    
+    if (addressDisplay && addressEdit) {
+        addressDisplay.style.display = 'none';
+        addressEdit.style.display = 'block';
+    }
+}
+
+function cancelModalAddressEdit() {
+    const addressDisplay = document.getElementById('modalAddressDisplay');
+    const addressEdit = document.getElementById('modalAddressEdit');
+    
+    if (addressDisplay && addressEdit) {
+        addressDisplay.style.display = 'block';
+        addressEdit.style.display = 'none';
+    }
+}
+
+function saveModalAddressEdit() {
+    const addressTextarea = document.getElementById('delivery_address');
+    const currentAddressP = document.querySelector('.current-address-card p');
+    const noAddressDiv = document.querySelector('.no-address-card');
+    const currentAddressDiv = document.querySelector('.current-address-card');
+    
+    if (addressTextarea && addressTextarea.value.trim()) {
+        // Update the display
+        if (currentAddressP) {
+            currentAddressP.textContent = addressTextarea.value.trim();
+        } else if (noAddressDiv) {
+            // Replace no-address with current-address
+            noAddressDiv.innerHTML = '<p>' + addressTextarea.value.trim() + '</p>';
+            noAddressDiv.className = 'current-address-card';
+        }
+        
+        // Hide edit form and show display
+        cancelModalAddressEdit();
+        
+        // Show success message
+        showModalAddressMessage('Address updated successfully!', 'success');
+    } else {
+        showModalAddressMessage('Please enter a valid address.', 'error');
+    }
+}
+
+function showModalAddressMessage(message, type) {
+    // Remove existing message
+    const existingMessage = document.querySelector('.modal-address-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Create new message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `modal-address-message alert alert-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.marginTop = '8px';
+    messageDiv.style.padding = '8px 12px';
+    messageDiv.style.borderRadius = '6px';
+    messageDiv.style.fontSize = '0.85em';
+    
+    if (type === 'success') {
+        messageDiv.style.background = '#d4edda';
+        messageDiv.style.color = '#155724';
+        messageDiv.style.border = '1px solid #c3e6cb';
+    } else {
+        messageDiv.style.background = '#f8d7da';
+        messageDiv.style.color = '#721c24';
+        messageDiv.style.border = '1px solid #f5c6cb';
+    }
+    
+    // Add to address section
+    const addressSection = document.querySelector('.modal-address-section');
+    if (addressSection) {
+        addressSection.appendChild(messageDiv);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 3000);
+    }
+}
+
+// Form validation before submission
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            const deliveryAddress = document.getElementById('delivery_address');
+            if (!deliveryAddress || !deliveryAddress.value.trim()) {
+                e.preventDefault();
+                showModalAddressMessage('Please provide a delivery address before placing your order.', 'error');
+                toggleModalAddressEdit();
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Reviews - Admin</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'musubiapp/css/design-system.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #1D3557;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #1D3557;
+            margin-bottom: 10px;
+        }
+        
+        /* Reviews Grid */
+        .reviews-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .review-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+        }
+        
+        .review-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .review-rating {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stars {
+            color: #FFB703;
+            font-size: 1.3em;
+        }
+        
+        .rating-number {
+            font-weight: 700;
+            color: #1D3557;
+            font-size: 1.2em;
+        }
+        
+        .review-date {
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        .review-product {
+            color: #E63946;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        
+        .review-customer {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .verified-badge {
+            background: #06D6A0;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .review-title {
+            font-size: 1.2em;
+            color: #1D3557;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .review-comment {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .review-image {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .review-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9em;
+        }
+        
+        .btn-success {
+            background: #06D6A0;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #05B887;
+        }
+        
+        .btn-warning {
+            background: #FFB703;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #FB8500;
+        }
+        
+        .btn-danger {
+            background: #E63946;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #C1121F;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status-approved {
+            background: #e8f5e9;
+            color: #06D6A0;
+        }
+        
+        .status-hidden {
+            background: #ffebee;
+            color: #E63946;
+        }
+        
+        .no-reviews {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 12px;
+        }
+        
+        .no-reviews p {
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .menu-item span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .review-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav>
+            <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_product_list' %}" class="menu-item">
+                <span class="menu-icon">🍱</span>
+                <span>Products</span>
+            </a>
+            <a href="{% url 'admin_feedback_list' %}" class="menu-item">
+                <span class="menu-icon">💬</span>
+                <span>Feedback</span>
+            </a>
+            <a href="{% url 'admin_reviews_list' %}" class="menu-item" style="background: rgba(255, 255, 255, 0.15); border-left-color: #E63946;">
+                <span class="menu-icon">⭐</span>
+                <span>Reviews</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>⭐ Product Reviews</h1>
+            <p>Manage customer product reviews and ratings</p>
+        </div>
+        
+        <!-- Reviews List -->
+        <div class="reviews-grid">
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="review-rating">
+                            <span class="stars">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}⭐{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span class="rating-number">{{ review.rating }}/5</span>
+                            <span class="status-badge {% if review.is_approved %}status-approved{% else %}status-hidden{% endif %}">
+                                {% if review.is_approved %}✅ Approved{% else %}🚫 Hidden{% endif %}
+                            </span>
+                        </div>
+                        <span class="review-date">{{ review.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    
+                    <div class="review-product">
+                        🍱 {{ review.product.name }}
+                    </div>
+                    
+                    <div class="review-customer">
+                        👤 {{ review.customer.user.username }}
+                        {% if review.is_verified_purchase %}
+                            <span class="verified-badge">✓ Verified Purchase</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="review-title">{{ review.title }}</h3>
+                    <p class="review-comment">{{ review.comment }}</p>
+                    
+                    {% if review.image %}
+                    <img src="{{ review.image.url }}" alt="Review image" class="review-image">
+                    {% endif %}
+                    
+                    <div class="review-actions">
+                        {% if review.is_approved %}
+                            <a href="{% url 'admin_review_toggle_approval' review.id %}" class="btn btn-warning">
+                                🙈 Hide Review
+                            </a>
+                        {% else %}
+                            <a href="{% url 'admin_review_toggle_approval' review.id %}" class="btn btn-success">
+                                ✅ Approve Review
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'admin_review_delete' review.id %}" class="btn btn-danger" 
+                           onclick="return confirm('Are you sure you want to delete this review?')">
+                            🗑️ Delete
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-reviews">
+                    <p>⭐ No reviews yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

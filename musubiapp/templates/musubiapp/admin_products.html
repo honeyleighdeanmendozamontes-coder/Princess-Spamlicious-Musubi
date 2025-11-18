@@ -1,0 +1,991 @@
+<!-- templates/musubiapp/admin_products.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Products - Admin Dashboard</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'musubiapp/css/design-system.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #1D3557;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #1D3557;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #E63946;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.457B9Dm;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #E63946;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        /* Floating Notification Button */
+        .floating-notification-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #457B9D, #1D3557);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            box-shadow: 0 6px 20px rgba(69,123,157,0.5);
+            transition: all 0.3s ease;
+            z-index: 1001;
+            text-decoration: none;
+        }
+        
+        .floating-notification-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(69,123,157,0.6);
+        }
+        
+        .floating-notification-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #fff;
+            color: #E63946;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 800;
+            border: 3px solid #E63946;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        /* Floating Message Button */
+        .floating-message-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            box-shadow: 0 6px 20px rgba(230,57,70,0.5);
+            transition: all 0.3s ease;
+            z-index: 1001;
+            text-decoration: none;
+        }
+        
+        .floating-message-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(230,57,70,0.6);
+        }
+        
+        .floating-message-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .message-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #fff;
+            color: #E63946;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 800;
+            border: 3px solid #E63946;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        /* Profile Dropdown Button */
+        .profile-dropdown-btn {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            z-index: 1002;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .profile-dropdown-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+        
+        .profile-dropdown-menu {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            min-width: 220px;
+            z-index: 1002;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .profile-dropdown-menu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .profile-dropdown-header {
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .profile-avatar-dropdown {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            color: #E63946;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0 auto 10px;
+            border: 3px solid white;
+        }
+        
+        .profile-dropdown-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        
+        .profile-dropdown-header p {
+            margin: 5px 0 0;
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        
+        .profile-dropdown-body {
+            padding: 10px 0;
+        }
+        
+        .profile-dropdown-item {
+            display: block;
+            padding: 12px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .profile-dropdown-item:hover {
+            background: #f8f9fa;
+            border-left-color: #E63946;
+            padding-left: 25px;
+        }
+        
+        .profile-dropdown-footer {
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .profile-logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #E63946;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .profile-logout-btn:hover {
+            background: #C1121F;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #1D3557;
+        }
+        
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 1em;
+        }
+        
+        .btn-primary {
+            background: #E63946;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+        
+        /* Products Table */
+        .products-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .table-header {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .table-header h2 {
+            color: #1D3557;
+            font-size: 1.5em;
+            margin: 0;
+        }
+
+        .search-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #E63946;
+            box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+        }
+
+        .search-btn {
+            padding: 10px 20px;
+            background: #E63946;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-btn:hover {
+            background: #C1121F;
+            transform: translateY(-1px);
+        }
+
+        .clear-search {
+            padding: 10px 15px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .clear-search:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .search-results-info {
+            color: #666;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+        
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .products-table thead {
+            background: #1D3557;
+            color: white;
+        }
+        
+        .products-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .products-table td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .products-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .product-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+        }
+        
+        .stock-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .stock-in {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .stock-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .stock-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: #1D3557;
+        }
+        
+        /* Messages */
+        .messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .menu-item span,
+            .sidebar-footer {
+                display: none;
+            }
+            
+            .menu-item {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .table-header h2 {
+                font-size: 1.2em;
+            }
+
+            .search-form {
+                max-width: none;
+                flex-wrap: wrap;
+            }
+
+            .search-input {
+                min-width: 200px;
+            }
+
+            .search-results-info {
+                display: block;
+                margin-top: 5px;
+            }
+            
+            .products-table {
+                font-size: 0.9em;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item active">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+        
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>🍱 Manage Products</h1>
+            <a href="{% url 'admin_product_add' %}" class="btn btn-primary">+ Add New Product</a>
+        </div>
+        
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Products Table -->
+        <div class="products-container">
+            <div class="table-header">
+                <h2>All Products ({{ products.count }})
+                    {% if search_query %}
+                        <span class="search-results-info">- Showing results for "{{ search_query }}"</span>
+                    {% endif %}
+                </h2>
+                
+                <form method="GET" class="search-form">
+                    <input type="text" 
+                           name="search" 
+                           class="search-input" 
+                           placeholder="Search products by name, category, or description..." 
+                           value="{{ search_query|default:'' }}">
+                    <button type="submit" class="search-btn">
+                        🔍 Search
+                    </button>
+                    {% if search_query %}
+                        <a href="{% url 'admin_product_list' %}" class="clear-search">
+                            ✕ Clear
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+            
+            {% if products %}
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                            {% else %}
+                                <div class="product-image">🍙</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ product.name }}</strong><br>
+                            <small style="color: #666;">{{ product.description|truncatewords:10 }}</small>
+                        </td>
+                        <td>{{ product.get_category_display }}</td>
+                        <td>
+                            <strong style="color: #E63946;">₱{{ product.price }}</strong>
+                            {% if product.bundle_price %}
+                                <br><small style="color: #28a745;">Bundle: ₱{{ product.bundle_price }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if product.stock > 10 %}
+                                <span class="stock-badge stock-in">{{ product.stock }} units</span>
+                            {% elif product.stock > 0 %}
+                                <span class="stock-badge stock-low">{{ product.stock }} units</span>
+                            {% else %}
+                                <span class="stock-badge stock-out">Out of Stock</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if product.is_active %}
+                                <span class="stock-badge stock-in">Active</span>
+                            {% else %}
+                                <span class="stock-badge stock-out">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'admin_product_edit' product.id %}" class="btn btn-warning btn-sm">✏️ Edit</a>
+                                <a href="#" class="btn btn-danger btn-sm" onclick="event.preventDefault(); showConfirmModal('Are you sure you want to delete this product? This action cannot be undone.', function() { window.location.href = '{% url "admin_product_delete" product.id %}'; });">🗑️ Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                {% if search_query %}
+                    <h3>🔍 No Products Found</h3>
+                    <p>No products match your search for "<strong>{{ search_query }}</strong>".</p>
+                    <p>Try searching with different keywords or <a href="{% url 'admin_product_list' %}">view all products</a>.</p>
+                {% else %}
+                    <h3>📦 No Products Yet</h3>
+                    <p>Start by adding your first product to the menu.</p>
+                    <a href="{% url 'admin_product_add' %}" class="btn btn-primary" style="margin-top: 20px;">+ Add First Product</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Include Confirmation Modal -->
+    {% include 'musubiapp/includes/confirm_modal.html' %}
+
+    <!-- Profile Dropdown Button -->
+    <button class="profile-dropdown-btn" id="profileDropdownBtn" title="Profile">
+        👤 ▼
+    </button>
+
+    <!-- Profile Dropdown Menu -->
+    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+        <div class="profile-dropdown-header">
+            <div class="profile-avatar-dropdown">
+                {{ user.username|slice:":1"|upper }}
+            </div>
+            <h3>{{ user.username }}</h3>
+            <p>Administrator</p>
+        </div>
+        <div class="profile-dropdown-body">
+            <a href="{% url 'profile' %}" class="profile-dropdown-item">👤 My Profile</a>
+        </div>
+        <div class="profile-dropdown-footer">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="profile-logout-btn">🚪 Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Message Button -->
+    <a href="{% url 'admin_messages' %}" class="floating-message-btn" title="Messages">
+        💬
+        <span class="message-badge" id="messageBadge" style="display: none;">0</span>
+    </a>
+
+    <!-- Floating Notification Button -->
+    <a href="{% url 'admin_notifications' %}" class="floating-notification-btn" title="Notifications">
+        🔔
+        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+    </a>
+
+    <script>
+        // Profile dropdown toggle
+        const profileBtn = document.getElementById('profileDropdownBtn');
+        const profileMenu = document.getElementById('profileDropdownMenu');
+
+        profileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            profileMenu.classList.toggle('active');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!profileMenu.contains(e.target) && e.target !== profileBtn) {
+                profileMenu.classList.remove('active');
+            }
+        });
+
+        // Close dropdown with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                profileMenu.classList.remove('active');
+            }
+        });
+
+        // Update notification badge count
+        function updateNotificationBadge() {
+            fetch('{% url "get_unread_notifications_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notificationBadge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching notification count:', error));
+        }
+
+        // Update notification count on page load and every 30 seconds
+        updateNotificationBadge();
+        setInterval(updateNotificationBadge, 30000); // Update every 30 seconds
+
+        // Search functionality
+        const searchInput = document.querySelector('.search-input');
+        const searchForm = document.querySelector('.search-form');
+        
+        if (searchInput && searchForm) {
+            // Auto-submit search on Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchForm.submit();
+                }
+            });
+
+            // Clear search input with Escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    if (searchInput.value !== '{{ search_query|default:"" }}') {
+                        window.location.href = '{% url "admin_product_list" %}';
+                    }
+                }
+            });
+
+            // Focus search input with Ctrl+F
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

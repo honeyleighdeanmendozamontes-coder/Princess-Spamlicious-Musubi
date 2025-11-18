@@ -1,0 +1,552 @@
+<!-- templates/musubiapp/menu.html -->
+{% extends 'musubiapp/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="menu-section">
+        <div class="section-title">
+            <h2>🍙 Our Complete Menu</h2>
+            <p>Discover all our delicious Hawaiian musubi offerings</p>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-filter-card">
+            <div class="search-content">
+                <div class="search-row">
+                    <div class="search-group">
+                        <label for="searchInput" class="form-label">Search Musubi</label>
+                        <input type="text" class="search-input" placeholder="Type to search..." id="searchInput">
+                    </div>
+                    <div class="search-group">
+                        <label for="categoryFilter" class="form-label">Filter by Category</label>
+                        <select class="category-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="spam">Spam Musubi</option>
+                            <option value="chicken">Chicken Musubi</option>
+                            <option value="vegetarian">Vegetarian</option>
+                            <option value="special">Spec ial</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="productsGrid">
+            {% for product in products %}
+            <div class="product-card" 
+                 data-category="{{ product.category|lower }}" 
+                 data-name="{{ product.name|lower }}">
+                <div class="product-content">
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <p class="product-description">{{ product.description }}</p>
+                    <p class="product-price">₱{{ product.price }}</p>
+                    
+                    {% if product.bundle_price %}
+                        <p class="product-price bundle">
+                            🎉 Bundle Deal: ₱{{ product.bundle_price }}
+                        </p>
+                    {% endif %}
+                    
+                    <div class="stock-info {% if product.stock == 0 %}stock-out{% elif product.stock <= 10 %}stock-low{% else %}stock-in{% endif %}">
+                        📦 
+                        {% if product.stock == 0 %}
+                            Sold Out
+                        {% elif product.stock <= 10 %}
+                            Only {{ product.stock }} left!
+                        {% else %}
+                            In Stock - Ready to Order!
+                        {% endif %}
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn btn-primary view-details" onclick="alert('Product details coming soon!')">
+                            👀 View Details
+                        </button>
+                        {% if user.is_authenticated %}
+                            {% if user.customer.role == 'customer' and product.stock > 0 %}
+                                <button class="btn btn-outline add-to-cart-btn" data-product-id="{{ product.id }}">
+                                    🛒 Add to Cart
+                                </button>
+                            {% elif user.customer.role == 'customer' and product.stock == 0 %}
+                                <button class="btn btn-outline" disabled>
+                                    ❌ Out of Stock
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'customer_login' %}" class="btn btn-outline">
+                                🔐 Login to Order
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <h3>No Products Available</h3>
+                <p>We're preparing something delicious! Check back soon for our amazing musubi offerings.</p>
+                {% if user.is_authenticated %}
+                    {% if user.customer.role == 'staff' or user.customer.role == 'admin' %}
+                        <a href="/admin/musubiapp/product/add/" class="btn btn-primary">
+                            ➕ Add Products
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Menu Section */
+.menu-section {
+    padding: 40px 0;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section-title h2 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.section-title p {
+    font-size: 1.2em;
+    color: #666;
+}
+
+/* Search and Filter */
+.search-filter-card {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    margin-bottom: 40px;
+    border: 1px solid #e9ecef;
+}
+
+.search-content {
+    padding: 30px;
+}
+
+.search-row {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+}
+
+.search-group {
+    flex: 1;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.search-input, .category-select {
+    width: 100%;
+    padding: 15px 20px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 1.1em;
+    transition: all 0.3s;
+}
+
+.search-input:focus, .category-select:focus {
+    border-color: #ff6b6b;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+/* Products Grid */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 15px;
+    padding: 0;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.product-content {
+    padding: 25px;
+}
+
+.product-name {
+    font-size: 1.4em;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.product-description {
+    color: #666;
+    margin-bottom: 15px;
+    line-height: 1.6;
+    font-size: 1em;
+}
+
+.product-price {
+    font-size: 1.6em;
+    color: #ff6b6b;
+    font-weight: 700;
+    margin: 15px 0;
+}
+
+.product-price.bundle {
+    color: #27ae60;
+    font-size: 1.2em;
+}
+
+.stock-info {
+    margin: 15px 0;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stock-in {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.stock-low {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.stock-out {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.product-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    cursor: pointer;
+    font-size: 0.95em;
+    flex: 1;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-primary {
+    background: #ff6b6b;
+    color: white;
+    border: 2px solid #ff6b6b;
+}
+
+.btn-primary:hover {
+    background: #ff5252;
+    border-color: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #ff6b6b;
+    border: 2px solid #ff6b6b;
+}
+
+.btn-outline:hover {
+    background: #ff6b6b;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+    grid-column: 1 / -1;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.empty-state h3 {
+    font-size: 2em;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.empty-state p {
+    font-size: 1.2em;
+    margin-bottom: 25px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .section-title h2 {
+        font-size: 2em;
+    }
+    
+    .search-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .products-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+    }
+    
+    .product-content {
+        padding: 20px;
+    }
+    
+    .menu-section {
+        padding: 30px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-content {
+        padding: 20px;
+    }
+    
+    .section-title h2 {
+        font-size: 1.8em;
+    }
+    
+    .product-name {
+        font-size: 1.3em;
+    }
+    
+    .btn {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+}
+</style>
+
+<script>
+// Enhanced Search and Filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const productCards = document.querySelectorAll('.product-card');
+    
+    function filterProducts() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const category = categoryFilter.value.toLowerCase();
+        
+        let visibleCount = 0;
+        
+        productCards.forEach(card => {
+            const productName = card.getAttribute('data-name');
+            const productCategory = card.getAttribute('data-category');
+            
+            const matchesSearch = productName.includes(searchTerm) || searchTerm === '';
+            const matchesCategory = !category || productCategory.includes(category);
+            
+            if (matchesSearch && matchesCategory) {
+                card.style.display = 'block';
+                visibleCount++;
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1)';
+                }, 50);
+            } else {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    card.style.display = 'none';
+                }, 300);
+            }
+        });
+        
+        // Show/hide empty state
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState) {
+            if (visibleCount === 0 && productCards.length > 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+            }
+        }
+    }
+    
+    // Debounce search input
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterProducts, 300);
+    });
+    
+    categoryFilter.addEventListener('change', filterProducts);
+    
+    // Add to cart functionality
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            addToCart(productId, this);
+        });
+    });
+    
+    // Initialize filter
+    filterProducts();
+});
+
+function addToCart(productId, button) {
+    // Show loading state
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Adding...';
+    button.disabled = true;
+    
+    fetch(`/add-to-cart/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('🎉 Product added to cart successfully!', 'success');
+            updateCartCount(data.cart_count);
+            
+            // Show success state
+            button.innerHTML = '✅ Added!';
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+        } else {
+            showAlert('❌ ' + (data.error || 'Error adding product to cart'), 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('❌ Network error. Please try again.', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function showAlert(message, type) {
+    // Remove existing alerts
+    const existingAlerts = document.querySelectorAll('.custom-alert');
+    existingAlerts.forEach(alert => alert.remove());
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert alert alert-${type}`;
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 120px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        max-width: 400px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        border-radius: 10px;
+        padding: 15px 20px;
+        font-weight: 500;
+        border: none;
+        border-left: 4px solid ${type === 'success' ? '#28a745' : '#dc3545'};
+        background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+        color: ${type === 'success' ? '#155724' : '#721c24'};
+    `;
+    alertDiv.innerHTML = `
+        <div class="alert-content">
+            <strong>${message}</strong>
+        </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 4000);
+}
+
+function updateCartCount(count = 0) {
+    const cartBadges = document.querySelectorAll('.cart-badge');
+    cartBadges.forEach(badge => {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

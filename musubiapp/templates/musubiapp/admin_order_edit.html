@@ -1,0 +1,557 @@
+<!-- musubiapp/templates/musubiapp/admin_order_edit.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Order #{{ order.id }} - Spamlicious Musubi</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #2c3e50;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            max-width: 1200px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card-header {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: #ff6b6b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #ff5252;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        /* Table Styles */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        /* Messages */
+        .messages {
+            margin: 20px 0;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .order-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 1.1em;
+        }
+        
+        .summary-row.total {
+            border-top: 2px solid #dee2e6;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-weight: 700;
+            font-size: 1.3em;
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_product_list' %}" class="menu-item">
+                <span class="menu-icon">🍱</span>
+                <span>Products</span>
+            </a>
+            <a href="{% url 'admin_order_list' %}" class="menu-item active">
+                <span class="menu-icon">📦</span>
+                <span>Orders</span>
+            </a>
+            <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                <span class="menu-icon">👥</span>
+                <span>Customers</span>
+            </a>
+            <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                <span class="menu-icon">📅</span>
+                <span>Reservations</span>
+            </a>
+        </nav>
+        
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Edit Order #{{ order.id }}</h1>
+            <p>Customer: {{ order.customer.user.username }}</p>
+        </div>
+        
+        <!-- Messages -->
+        <div class="messages">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Order Details Card -->
+        <div class="card">
+            <h2 class="card-header">📋 Order Information</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_order">
+                
+                <div class="form-group">
+                    <label class="form-label">Customer</label>
+                    <input type="text" class="form-control" 
+                           value="{{ order.customer.user.username }} - {{ order.customer.user.first_name }} {{ order.customer.user.last_name }}" 
+                           disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="delivery_address">Delivery Address *</label>
+                    <textarea class="form-control" id="delivery_address" name="delivery_address" 
+                              rows="3" required>{{ order.delivery_address }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="status">Order Status *</label>
+                    <select class="form-control" id="status" name="status" required>
+                        <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="preparing" {% if order.status == 'preparing' %}selected{% endif %}>Preparing</option>
+                        <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="notes">Order Notes</label>
+                    <textarea class="form-control" id="notes" name="notes" 
+                              rows="3">{{ order.notes }}</textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        💾 Update Order Details
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Order Items Card -->
+        <div class="card">
+            <h2 class="card-header">🛒 Order Items</h2>
+            
+            {% if order_items %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                            <tr>
+                                <td>{{ item.product.name }}</td>
+                                <td>₱{{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₱{{ item.get_total }}</td>
+                                <td>
+                                    <form method="post" style="display: inline;" id="removeItemForm{{ item.id }}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="remove_item">
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                                        <button type="button" class="btn btn-danger btn-sm" 
+                                                onclick="showConfirmModal('Remove this item from the order?', function() { document.getElementById('removeItemForm{{ item.id }}').submit(); })">
+                                            🗑️ Remove
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div class="order-summary">
+                    <div class="summary-row total">
+                        <span>Order Total:</span>
+                        <span>₱{{ order.total_amount }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📦</div>
+                    <p>No items in this order yet. Add items below.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Add Item Card -->
+        <div class="card">
+            <h2 class="card-header">➕ Add Item to Order</h2>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_item">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="product">Product *</label>
+                        <select class="form-control" id="product" name="product" required>
+                            <option value="">Select Product</option>
+                            {% for product in products %}
+                                <option value="{{ product.id }}">
+                                    {{ product.name }} - ₱{{ product.price }} (Stock: {{ product.stock }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="quantity">Quantity *</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" 
+                               min="1" value="1" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        ➕ Add Item
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Navigation -->
+        <div class="form-actions">
+            <a href="{% url 'admin_order_list' %}" class="btn btn-secondary">
+                ← Back to Orders
+            </a>
+            <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-primary">
+                👁️ View Order Details
+            </a>
+        </div>
+    </main>
+    <!-- Include Confirmation Modal -->
+    {% include 'musubiapp/includes/confirm_modal.html' %}
+</body>
+</html>

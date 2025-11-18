@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Feedback - Admin</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'musubiapp/css/design-system.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #1D3557;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #1D3557;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        /* Filter Section */
+        .filter-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+        }
+        
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1D3557;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #E63946;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #C1121F;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6C757D;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        /* Feedback Cards */
+        .feedback-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .feedback-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: all 0.3s;
+        }
+        
+        .feedback-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .feedback-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .badge-general { background: #457B9D; }
+        .badge-suggestion { background: #06D6A0; }
+        .badge-complaint { background: #E63946; }
+        .badge-compliment { background: #FFB703; }
+        .badge-bug_report { background: #6C757D; }
+        
+        .badge-new { background: #FFB703; }
+        .badge-in_review { background: #457B9D; }
+        .badge-resolved { background: #06D6A0; }
+        .badge-closed { background: #6C757D; }
+        
+        .feedback-date {
+            color: #999;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        
+        .feedback-customer {
+            color: #E63946;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .feedback-subject {
+            font-size: 1.3em;
+            color: #1D3557;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .feedback-message {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .feedback-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 0.9em;
+        }
+        
+        .no-feedback {
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 12px;
+        }
+        
+        .no-feedback p {
+            color: #999;
+            font-size: 1.2em;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .menu-item span {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .filter-form {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav>
+            <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_product_list' %}" class="menu-item">
+                <span class="menu-icon">🍱</span>
+                <span>Products</span>
+            </a>
+            <a href="{% url 'admin_order_list' %}" class="menu-item">
+                <span class="menu-icon">📦</span>
+                <span>Orders</span>
+            </a>
+            <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                <span class="menu-icon">👥</span>
+                <span>Customers</span>
+            </a>
+            <a href="{% url 'admin_feedback_list' %}" class="menu-item" style="background: rgba(255, 255, 255, 0.15); border-left-color: #E63946;">
+                <span class="menu-icon">💬</span>
+                <span>Feedback</span>
+            </a>
+            <a href="{% url 'admin_reviews_list' %}" class="menu-item">
+                <span class="menu-icon">⭐</span>
+                <span>Reviews</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>💬 Customer Feedback</h1>
+            <p>Manage and respond to customer feedback</p>
+        </div>
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <form method="get" class="filter-form">
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                        <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+                        <option value="in_review" {% if status_filter == 'in_review' %}selected{% endif %}>In Review</option>
+                        <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Type</label>
+                    <select name="type">
+                        <option value="all" {% if type_filter == 'all' %}selected{% endif %}>All Types</option>
+                        <option value="general" {% if type_filter == 'general' %}selected{% endif %}>General</option>
+                        <option value="suggestion" {% if type_filter == 'suggestion' %}selected{% endif %}>Suggestion</option>
+                        <option value="complaint" {% if type_filter == 'complaint' %}selected{% endif %}>Complaint</option>
+                        <option value="compliment" {% if type_filter == 'compliment' %}selected{% endif %}>Compliment</option>
+                        <option value="bug_report" {% if type_filter == 'bug_report' %}selected{% endif %}>Bug Report</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{% url 'admin_feedback_list' %}" class="btn btn-secondary">Clear</a>
+            </form>
+        </div>
+        
+        <!-- Feedback List -->
+        <div class="feedback-grid">
+            {% if feedbacks %}
+                {% for feedback in feedbacks %}
+                <div class="feedback-card">
+                    <div class="feedback-header">
+                        <div class="feedback-badges">
+                            <span class="badge badge-{{ feedback.feedback_type }}">
+                                {{ feedback.get_feedback_type_display }}
+                            </span>
+                            <span class="badge badge-{{ feedback.status }}">
+                                {{ feedback.get_status_display }}
+                            </span>
+                        </div>
+                        <span class="feedback-date">{{ feedback.created_at|date:"M d, Y - h:i A" }}</span>
+                    </div>
+                    
+                    <div class="feedback-customer">
+                        👤 {{ feedback.customer.user.username }}
+                    </div>
+                    
+                    <h3 class="feedback-subject">{{ feedback.subject }}</h3>
+                    <p class="feedback-message">{{ feedback.message|truncatewords:30 }}</p>
+                    
+                    <div class="feedback-actions">
+                        <a href="{% url 'admin_feedback_detail' feedback.id %}" class="btn btn-primary btn-sm">
+                            View & Respond
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-feedback">
+                    <p>📭 No feedback found</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

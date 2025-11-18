@@ -1,0 +1,441 @@
+<!-- musubiapp/templates/musubiapp/admin_customers.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Management - Spamlicious Musubi</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-section {
+            margin-bottom: 10px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #2c3e50;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Customer Specific Styles */
+        .role-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .role-admin { 
+            background: #dc3545; 
+            color: white; 
+        }
+        .role-staff { 
+            background: #fd7e14; 
+            color: white; 
+        }
+        .role-customer { 
+            background: #6c757d; 
+            color: white; 
+        }
+        
+        .text-muted {
+            color: #6c757d;
+        }
+        
+        /* Messages */
+        .messages {
+            margin: 20px 0;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #ff5252;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item active">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+        
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Customer Management</h1>
+            <p>Manage customer accounts and information</p>
+        </div>
+        
+        <div class="messages">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'admin_customer_add' %}" class="btn btn-primary">
+                ➕ Add New Customer
+            </a>
+        </div>
+
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Orders</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>
+                            <strong>{{ customer.user.username }}</strong>
+                        </td>
+                        <td>
+                            {% if customer.user.first_name or customer.user.last_name %}
+                                {{ customer.user.first_name }} {{ customer.user.last_name }}
+                            {% else %}
+                                <span class="text-muted">Not provided</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ customer.user.email }}</td>
+                        <td>{{ customer.phone|default:"-" }}</td>
+                        <td>
+                            <span class="role-badge role-{{ customer.role }}">
+                                {{ customer.get_role_display }}
+                            </span>
+                        </td>
+                        <td>{{ customer.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            {% with customer.order_set.count as order_count %}
+                                <strong>{{ order_count }}</strong> order{{ order_count|pluralize }}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 5px;">
+                                <a href="{% url 'admin_customer_detail' customer.id %}" class="btn btn-info btn-sm">
+                                    👁️ View Details
+                                </a>
+                                <a href="{% url 'admin_customer_edit' customer.id %}" class="btn btn-primary btn-sm">
+                                    ✏️ Edit
+                                </a>
+                                <a href="{% url 'admin_customer_delete' customer.id %}" class="btn btn-secondary btn-sm">
+                                    🗑️ Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px;">
+                            <h3>No customers found</h3>
+                            <p>Customer accounts will appear here when users register.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary -->
+        <div style="text-align: center; color: #666; margin-top: 20px;">
+            <p>
+                Total Customers: <strong>{{ customers|length }}</strong> | 
+                Admins: <strong>{{ customers|length }}</strong> | 
+                Staff: <strong>{{ customers|length }}</strong> | 
+                Regular Customers: <strong>{{ customers|length }}</strong>
+            </p>
+        </div>
+    </main>
+</body>
+</html>

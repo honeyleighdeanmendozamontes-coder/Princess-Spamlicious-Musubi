@@ -1,0 +1,568 @@
+{% extends 'musubiapp/base.html' %}
+
+{% block title %}Messages - Chat with Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Chat Container */
+    .chat-container {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #f0f2f5;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* Chat Header */
+    .chat-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+        color: white;
+        padding: 20px 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .chat-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5em;
+        font-weight: 800;
+        border: 3px solid rgba(255,255,255,0.5);
+    }
+    
+    .chat-info h2 {
+        font-size: 1.3em;
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .chat-info p {
+        font-size: 0.9em;
+        margin: 0;
+        opacity: 0.9;
+    }
+    
+    /* Messages Area */
+    .messages-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    /* Message Bubble */
+    .message-bubble {
+        display: flex;
+        gap: 10px;
+        max-width: 70%;
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .message-bubble.sent {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+    }
+    
+    .message-bubble.received {
+        align-self: flex-start;
+    }
+    
+    .message-avatar {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 0.9em;
+        flex-shrink: 0;
+    }
+    
+    .message-content {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .message-text {
+        padding: 12px 16px;
+        border-radius: 18px;
+        word-wrap: break-word;
+        line-height: 1.4;
+    }
+    
+    .message-bubble.sent .message-text {
+        background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message-bubble.received .message-text {
+        background: white;
+        color: #333;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .message-time {
+        font-size: 0.75em;
+        color: #65676b;
+        padding: 0 5px;
+    }
+    
+    .message-bubble.sent .message-time {
+        text-align: right;
+    }
+    
+    .message-subject {
+        font-weight: 700;
+        margin-bottom: 5px;
+        font-size: 0.95em;
+    }
+    
+    /* Message Input Area */
+    .message-input-area {
+        background: white;
+        padding: 15px 20px;
+        border-top: 1px solid #e4e6eb;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .message-input {
+        flex: 1;
+        padding: 12px 20px;
+        border: 1px solid #e4e6eb;
+        border-radius: 25px;
+        font-size: 1em;
+        outline: none;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+    
+    .message-input:focus {
+        border-color: #ff6b6b;
+        box-shadow: 0 0 0 3px rgba(255,107,107,0.1);
+    }
+    
+    .send-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3em;
+        transition: all 0.3s;
+        flex-shrink: 0;
+    }
+    
+    .send-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+    }
+    
+    .send-btn:active {
+        transform: scale(0.95);
+    }
+    
+    .send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    /* Empty State */
+    .empty-chat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #65676b;
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .empty-chat-icon {
+        font-size: 4em;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .empty-chat h3 {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+    
+    .empty-chat p {
+        font-size: 1em;
+        color: #65676b;
+    }
+    
+    /* Date Divider */
+    .date-divider {
+        text-align: center;
+        margin: 20px 0;
+        position: relative;
+    }
+    
+    .date-divider span {
+        background: #f0f2f5;
+        padding: 5px 15px;
+        border-radius: 15px;
+        font-size: 0.85em;
+        color: #65676b;
+        font-weight: 600;
+    }
+    
+    /* Compose Modal */
+    .compose-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .compose-modal.active {
+        display: flex;
+    }
+    
+    .compose-content {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+    }
+    
+    .compose-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .compose-header h2 {
+        color: #2c3e50;
+        font-size: 1.5em;
+    }
+    
+    .close-compose {
+        background: none;
+        border: none;
+        font-size: 2em;
+        color: #999;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .close-compose:hover {
+        color: #ff6b6b;
+        transform: rotate(90deg);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e4e6eb;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #ff6b6b;
+    }
+    
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    .compose-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    
+    .btn {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: all 0.3s;
+        font-size: 1em;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+    }
+    
+    .btn-secondary {
+        background: #e4e6eb;
+        color: #333;
+    }
+    
+    .btn-secondary:hover {
+        background: #d0d2d6;
+    }
+    
+    /* Compose Button */
+    .compose-btn {
+        position: fixed;
+        bottom: 90px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8em;
+        box-shadow: 0 6px 20px rgba(255,107,107,0.5);
+        transition: all 0.3s;
+        z-index: 1000;
+    }
+    
+    .compose-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(255,107,107,0.6);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .message-bubble {
+            max-width: 85%;
+        }
+        
+        .chat-header {
+            padding: 15px 20px;
+        }
+        
+        .messages-area {
+            padding: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <div class="chat-avatar">A</div>
+        <div class="chat-info">
+            <h2>Admin Support</h2>
+            <p>We're here to help!</p>
+        </div>
+    </div>
+    
+    <!-- Messages Area -->
+    <div class="messages-area" id="messagesArea">
+        {% if received_messages or sent_messages %}
+            {% for msg in received_messages|add:sent_messages|dictsort:"created_at" %}
+                {% if msg.sender == user %}
+                    <!-- Sent Message -->
+                    <div class="message-bubble sent">
+                        <div class="message-content">
+                            <div class="message-text">
+                                {% if msg.subject %}
+                                    <div class="message-subject">{{ msg.subject }}</div>
+                                {% endif %}
+                                {{ msg.message }}
+                            </div>
+                            <div class="message-time">{{ msg.created_at|date:"h:i A" }}</div>
+                        </div>
+                        <div class="message-avatar">{{ user.username|slice:":1"|upper }}</div>
+                    </div>
+                {% else %}
+                    <!-- Received Message -->
+                    <div class="message-bubble received">
+                        <div class="message-avatar">A</div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                {% if msg.subject %}
+                                    <div class="message-subject">{{ msg.subject }}</div>
+                                {% endif %}
+                                {{ msg.message }}
+                            </div>
+                            <div class="message-time">{{ msg.created_at|date:"h:i A" }}</div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-chat">
+                <div class="empty-chat-icon">💬</div>
+                <h3>No messages yet</h3>
+                <p>Start a conversation with our admin team!</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Message Input Area -->
+    <div class="message-input-area">
+        <form method="post" action="{% url 'send_message' %}" style="display: flex; gap: 10px; width: 100%;" id="messageForm">
+            {% csrf_token %}
+            <input type="hidden" name="recipient" value="{{ admin_users.0.id }}">
+            <input type="hidden" name="subject" value="Chat Message">
+            <input 
+                type="text" 
+                name="message" 
+                class="message-input" 
+                placeholder="Type a message..." 
+                required
+                autocomplete="off"
+            >
+            <button type="submit" class="send-btn" title="Send">
+                ➤
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Compose New Topic Button -->
+<button class="compose-btn" onclick="openComposeModal()" title="New Topic">
+    ✉️
+</button>
+
+<!-- Compose Modal -->
+<div class="compose-modal" id="composeModal">
+    <div class="compose-content">
+        <div class="compose-header">
+            <h2>New Message</h2>
+            <button class="close-compose" onclick="closeComposeModal()">&times;</button>
+        </div>
+        <form method="post" action="{% url 'send_message' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">To:</label>
+                <select name="recipient" class="form-control" required>
+                    <option value="">Select Admin</option>
+                    {% for admin in admin_users %}
+                        <option value="{{ admin.id }}">{{ admin.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Subject:</label>
+                <input type="text" name="subject" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Message:</label>
+                <textarea name="message" class="form-control" required></textarea>
+            </div>
+            <div class="compose-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeComposeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Scroll to bottom of messages
+    function scrollToBottom() {
+        const messagesArea = document.getElementById('messagesArea');
+        if (messagesArea) {
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+    }
+    
+    // Scroll on page load
+    window.addEventListener('load', scrollToBottom);
+    
+    // Compose modal functions
+    function openComposeModal() {
+        document.getElementById('composeModal').classList.add('active');
+    }
+    
+    function closeComposeModal() {
+        document.getElementById('composeModal').classList.remove('active');
+    }
+    
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeComposeModal();
+        }
+    });
+    
+    // Close modal on outside click
+    document.getElementById('composeModal').addEventListener('click', (e) => {
+        if (e.target.id === 'composeModal') {
+            closeComposeModal();
+        }
+    });
+    
+    // Auto-submit on Enter (optional)
+    document.querySelector('.message-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            document.getElementById('messageForm').submit();
+        }
+    });
+</script>
+{% endblock %}

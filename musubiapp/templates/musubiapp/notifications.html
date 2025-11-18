@@ -1,0 +1,278 @@
+{% extends 'musubiapp/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="notifications-section">
+        <div class="notifications-header">
+            <div class="header-left">
+                <h2>🔔 Notifications</h2>
+                {% if user.customer.role == 'admin' %}
+                <a href="{% url 'admin_dashboard' %}" class="btn btn-back">← Back to Dashboard</a>
+                {% endif %}
+            </div>
+            <div class="header-actions">
+                {% if unread_count > 0 %}
+                <form method="post" action="{% url 'mark_all_notifications_read' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary">Mark All as Read</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if notifications %}
+        <div class="notifications-list">
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
+                <div class="notification-icon">
+                    {% if notification.notification_type == 'new_order' %}
+                        🛍️
+                    {% elif notification.notification_type == 'order_preparing' %}
+                        👨‍🍳
+                    {% elif notification.notification_type == 'order_shipping' %}
+                        🚚
+                    {% elif notification.notification_type == 'order_completed' %}
+                        ✅
+                    {% elif notification.notification_type == 'order_cancelled' %}
+                        ❌
+                    {% elif notification.notification_type == 'new_reservation' %}
+                        📅
+                    {% elif notification.notification_type == 'reservation_confirmed' %}
+                        ✅
+                    {% elif notification.notification_type == 'reservation_cancelled' %}
+                        ❌
+                    {% endif %}
+                </div>
+                <div class="notification-content">
+                    <h3>{{ notification.title }}</h3>
+                    <p>{{ notification.message }}</p>
+                    <span class="notification-time">{{ notification.created_at|timesince }} ago</span>
+                </div>
+                <div class="notification-actions">
+                    {% if not notification.is_read %}
+                    <form method="post" action="{% url 'mark_notification_read' notification.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon" title="Mark as read">✓</button>
+                    </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'delete_notification' notification.id %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-icon delete" title="Delete">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-notifications">
+            <div class="empty-icon">🔔</div>
+            <h3>No Notifications</h3>
+            <p>You're all caught up! We'll notify you when there's something new.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.notifications-section {
+    padding: 40px 0;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.notifications-header h2 {
+    font-size: 2em;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-back {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #1D3557, #457B9D);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95em;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(29,53,87,0.3);
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, #457B9D, #1D3557);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(29,53,87,0.4);
+}
+
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.notification-item {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    border-left: 4px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s;
+}
+
+.notification-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.notification-item.unread {
+    background: #fff9e6;
+    border-left-color: #ff6b6b;
+}
+
+.notification-icon {
+    font-size: 2.5em;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-content h3 {
+    font-size: 1.2em;
+    color: #2c3e50;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.notification-content p {
+    color: #666;
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+}
+
+.notification-time {
+    font-size: 0.85em;
+    color: #999;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.3em;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.btn-icon:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.btn-icon.delete:hover {
+    background: #ffebee;
+}
+
+.empty-notifications {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.empty-icon {
+    font-size: 5em;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-notifications h3 {
+    font-size: 1.8em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.empty-notifications p {
+    color: #666;
+    font-size: 1.1em;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .notifications-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .btn-back {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .notification-item {
+        flex-direction: column;
+    }
+    
+    .notification-actions {
+        justify-content: flex-end;
+    }
+}
+</style>
+{% endblock %}

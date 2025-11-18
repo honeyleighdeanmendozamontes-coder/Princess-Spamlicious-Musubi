@@ -1,0 +1,1010 @@
+<!-- musubiapp/templates/musubiapp/admin_reservations.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservations - Spamlicious Musubi Admin</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile-responsive.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        } 
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #1D3557 0%, #1a252f 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #2c3e50;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #C1121F, #B01018);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(230,57,70,0.3);
+        }
+        
+        .main-content {
+            margin-left: 0;
+            flex: 1;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #C1121F, #B01018);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(230,57,70,0.3);
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #138496;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .badge-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        /* Reserved Products Styling */
+        .reserved-products {
+            max-width: 260px;
+        }
+        
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            margin: 2px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 12px;
+            border-left: 3px solid #E63946;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            color: #2c3e50;
+            flex: 1;
+            margin-right: 8px;
+        }
+        
+        .product-qty {
+            color: #6c757d;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        
+        .product-price {
+            color: #E63946;
+            font-weight: 600;
+        }
+        
+        .total-amount {
+            margin-top: 8px;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .no-products {
+            color: #6c757d;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        .reserved-summary {
+            font-size: 12px;
+            color: #2c3e50;
+            margin-bottom: 6px;
+        }
+
+        .view-reserved-btn {
+            padding: 6px 14px;
+            font-size: 12px;
+            border-radius: 999px;
+            background: #17a2b8;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            width: 100%;           /* always fill cell width */
+            box-sizing: border-box;
+        }
+
+        .view-reserved-btn:hover {
+            background: #138496;
+        }
+
+        /* Slight extra spacing on narrower screens */
+        @media (max-width: 992px) {
+            .view-reserved-btn {
+                margin-top: 4px;
+            }
+        }
+
+        /* Reserved Products Modal */
+        .reserved-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+        }
+
+        .reserved-modal-overlay.active {
+            display: flex;
+        }
+
+        .reserved-modal {
+            background: #fff;
+            border-radius: 12px;
+            max-width: 420px;
+            width: 90%;
+            max-height: 80vh;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reserved-modal-header {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reserved-modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .reserved-modal-close {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .reserved-modal-body {
+            padding: 16px 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .reserved-modal-footer {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            text-align: right;
+        }
+
+        .reserved-modal-footer button {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: #6c757d;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .reserved-modal-footer button:hover {
+            background: #5a6268;
+        }
+        
+        /* Mobile Reserved Products */
+        .mobile-reserved-products {
+            margin-top: 8px;
+        }
+        
+        .mobile-product-item {
+            padding: 6px 10px;
+            margin: 4px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 13px;
+            border-left: 3px solid #E63946;
+            color: #2c3e50;
+        }
+        
+        .mobile-total {
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 13px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(230,57,70,0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(230,57,70,0.6);
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                max-width: 320px;
+            }
+            
+            .main-content {
+                padding: 80px 15px 20px;
+            }
+            
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+            
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            
+            /* Mobile Table - Convert to Cards */
+            .table-responsive {
+                display: none;
+            }
+            
+            .mobile-cards {
+                display: block;
+            }
+            
+            .reservation-card {
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                border: 1px solid #e9ecef;
+            }
+            
+            .reservation-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .reservation-id {
+                font-weight: 700;
+                color: #1D3557;
+                font-size: 1.1rem;
+            }
+            
+            .reservation-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+            
+            .info-item {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .info-label {
+                font-size: 0.8rem;
+                color: #666;
+                font-weight: 600;
+                margin-bottom: 4px;
+            }
+            
+            .info-value {
+                font-size: 0.9rem;
+                color: #333;
+                font-weight: 500;
+            }
+            
+            .reservation-actions {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .reservation-actions .btn {
+                flex: 1;
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                margin: 0;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .mobile-menu-toggle {
+                display: none;
+            }
+            
+            .sidebar {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 280px;
+                padding: 40px;
+            }
+            
+            .mobile-cards {
+                display: none;
+            }
+        }
+        
+        /* Touch-friendly enhancements */
+        @media (hover: none) and (pointer: coarse) {
+            .btn {
+                min-height: 48px;
+                padding: 14px 20px;
+            }
+            
+            .menu-item {
+                padding: 18px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        ☰
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_product_list' %}" class="menu-item">
+                <span class="menu-icon">🍱</span>
+                <span>Products</span>
+            </a>
+            <a href="{% url 'admin_order_list' %}" class="menu-item">
+                <span class="menu-icon">📦</span>
+                <span>Orders</span>
+            </a>
+            <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                <span class="menu-icon">👥</span>
+                <span>Customers</span>
+            </a>
+            <a href="{% url 'admin_reservation_list' %}" class="menu-item active">
+                <span class="menu-icon">📅</span>
+                <span>Reservations</span>
+            </a>
+            <a href="{% url 'admin_messages' %}" class="menu-item">
+                <span class="menu-icon">💬</span>
+                <span>Messages</span>
+            </a>
+            <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                <span class="menu-icon">📋</span>
+                <span>Activity Log</span>
+            </a>
+            <a href="{% url 'admin_analytics' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Analytics</span>
+            </a>
+        </nav>
+        
+    </aside>
+    
+    <main class="main-content">
+        <div class="page-header">
+            <h1>📅 Reservations</h1>
+            <a href="{% url 'admin_reservation_add' %}" class="btn btn-primary">
+                ➕ New Reservation
+            </a>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="card">
+            {% if reservations %}
+                <!-- Desktop Table View -->
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Guests</th>
+                                <th>Reserved Products</th>
+                                <th>📍 Delivery Address</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in reservations %}
+                                <tr>
+                                    <td>#{{ reservation.id }}</td>
+                                    <td>{{ reservation.customer.user.username }}</td>
+                                    <td>{{ reservation.reservation_date }}</td>
+                                    <td>{{ reservation.reservation_time }}</td>
+                                    <td>{{ reservation.number_of_guests }}</td>
+                                    <td>
+                                        {% if reservation.reservationitem_set.all %}
+                                            <div class="reserved-products">
+                                                <div class="reserved-summary">
+                                                    {{ reservation.reservationitem_set.count }} item{% if reservation.reservationitem_set.count|add:'0' > 1 %}s{% endif %},
+                                                    total ₱{{ reservation.get_total_amount }}
+                                                </div>
+                                                <a href="{% url 'admin_reservation_detail' reservation.id %}"
+                                                   class="view-reserved-btn">
+                                                    View
+                                                </a>
+                                                <!-- Hidden detailed items used by the modal -->
+                                                <div id="reserved-items-{{ reservation.id }}" class="reserved-items-data" style="display: none;">
+                                                    {% for item in reservation.reservationitem_set.all %}
+                                                        <div class="product-item">
+                                                            <span class="product-name">{{ item.product.name }}</span>
+                                                            <span class="product-qty">×{{ item.quantity }}</span>
+                                                            <span class="product-price">₱{{ item.get_total }}</span>
+                                                        </div>
+                                                    {% endfor %}
+                                                    <div class="total-amount">
+                                                        <strong>Total: ₱{{ reservation.get_total_amount }}</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="no-products">No pre-orders</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if reservation.delivery_address %}
+                                            <div class="delivery-address-cell">
+                                                <div class="address-preview">
+                                                    {{ reservation.delivery_address|truncatewords:8 }}
+                                                </div>
+                                                <small class="text-muted">📍 Delivery required</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="no-address">No delivery address</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{{ reservation.status }}">
+                                            {{ reservation.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="{% url 'admin_reservation_edit' reservation.id %}" 
+                                               class="btn btn-primary btn-sm">
+                                                ✏️ Edit
+                                            </a>
+                                            <a href="{% url 'admin_reservation_delete' reservation.id %}" 
+                                               class="btn btn-danger btn-sm">
+                                                🗑️ Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Mobile Card View -->
+                <div class="mobile-cards" style="display: none;">
+                    {% for reservation in reservations %}
+                        <div class="reservation-card">
+                            <div class="reservation-header">
+                                <div class="reservation-id">#{{ reservation.id }}</div>
+                                <span class="badge badge-{{ reservation.status }}">
+                                    {{ reservation.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            <div class="reservation-info">
+                                <div class="info-item">
+                                    <div class="info-label">Customer</div>
+                                    <div class="info-value">{{ reservation.customer.user.username }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Date</div>
+                                    <div class="info-value">{{ reservation.reservation_date }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Time</div>
+                                    <div class="info-value">{{ reservation.reservation_time }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Guests</div>
+                                    <div class="info-value">{{ reservation.number_of_guests }}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Reserved Products</div>
+                                    <div class="info-value">
+                                        {% if reservation.reservationitem_set.all %}
+                                            <div class="mobile-reserved-products">
+                                                {% for item in reservation.reservationitem_set.all %}
+                                                    <div class="mobile-product-item">
+                                                        {{ item.product.name }} ×{{ item.quantity }} - ₱{{ item.get_total }}
+                                                    </div>
+                                                {% endfor %}
+                                                <div class="mobile-total">
+                                                    <strong>Total: ₱{{ reservation.get_total_amount }}</strong>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="no-products">No pre-orders</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="reservation-actions">
+                                <a href="{% url 'admin_reservation_detail' reservation.id %}" 
+                                   class="btn btn-info btn-sm">
+                                    👁️ View Details
+                                </a>
+                                <a href="{% url 'admin_reservation_edit' reservation.id %}" 
+                                   class="btn btn-primary btn-sm">
+                                    ✏️ Edit
+                                </a>
+                                <a href="{% url 'admin_reservation_delete' reservation.id %}" 
+                                   class="btn btn-danger btn-sm">
+                                    🗑️ Delete
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📅</div>
+                    <h3>No Reservations Yet</h3>
+                    <p>Create your first reservation to get started</p>
+                    <a href="{% url 'admin_reservation_add' %}" class="btn btn-primary" style="margin-top: 20px;">
+                        ➕ Create Reservation
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <!-- Include Confirmation Modal -->
+    {% include 'musubiapp/includes/confirm_modal.html' %}
+
+    <!-- Reserved Products Modal -->
+    <div class="reserved-modal-overlay" id="reservedModalOverlay">
+        <div class="reserved-modal">
+            <div class="reserved-modal-header">
+                <div class="reserved-modal-title" id="reservedModalTitle">Reserved Products</div>
+                <button type="button" class="reserved-modal-close" onclick="closeReservedModal()">&times;</button>
+            </div>
+            <div class="reserved-modal-body" id="reservedModalBody"></div>
+            <div class="reserved-modal-footer">
+                <button type="button" onclick="closeReservedModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Mobile Menu Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (mobileMenuToggle && sidebar && sidebarOverlay) {
+                // Toggle sidebar
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    sidebarOverlay.classList.toggle('active');
+                });
+                
+                // Close sidebar when clicking overlay
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                });
+                
+                // Close sidebar on escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        sidebar.classList.remove('active');
+                        sidebarOverlay.classList.remove('active');
+                    }
+                });
+                
+                // Close sidebar when clicking menu items on mobile
+                const menuItems = sidebar.querySelectorAll('.menu-item');
+                menuItems.forEach(function(item) {
+                    item.addEventListener('click', function() {
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('active');
+                            sidebarOverlay.classList.remove('active');
+                        }
+                    });
+                });
+            }
+            
+            // Add confirmation for delete buttons
+            const deleteButtons = document.querySelectorAll('.btn-danger[href*="delete"]');
+            deleteButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const deleteUrl = this.getAttribute('href');
+                    if (confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
+                        window.location.href = deleteUrl;
+                    }
+                });
+            });
+        });
+
+        // Reserved products modal helper functions
+        window.openReservedModal = function(reservationId) {
+            const overlay = document.getElementById('reservedModalOverlay');
+            const body = document.getElementById('reservedModalBody');
+            const source = document.getElementById('reserved-items-' + reservationId);
+
+            if (!overlay || !body || !source) {
+                return;
+            }
+
+            body.innerHTML = source.innerHTML;
+            overlay.classList.add('active');
+        };
+
+        window.closeReservedModal = function() {
+            const overlay = document.getElementById('reservedModalOverlay');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        };
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const overlay = document.getElementById('reservedModalOverlay');
+            const modal = overlay ? overlay.querySelector('.reserved-modal') : null;
+            if (overlay && modal && overlay.classList.contains('active')) {
+                if (!modal.contains(e.target) && e.target !== modal) {
+                    overlay.classList.remove('active');
+                }
+            }
+        });
+
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const overlay = document.getElementById('reservedModalOverlay');
+                if (overlay) {
+                    overlay.classList.remove('active');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

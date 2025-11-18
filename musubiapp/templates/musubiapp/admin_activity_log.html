@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Activity Log - Spamlicious Musubi Admin</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        
+        .filter-section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .filter-section h3 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+        
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #E63946;
+        }
+        
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(230,57,70,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #2c3e50;
+            position: sticky;
+            top: 0;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-create {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        .badge-update {
+            background: #cfe2ff;
+            color: #084298;
+        }
+        
+        .badge-delete {
+            background: #f8d7da;
+            color: #842029;
+        }
+        
+        .badge-login {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .badge-logout {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-view {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .entity-badge {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        .pagination a,
+        .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #495057;
+            transition: all 0.3s;
+        }
+        
+        .pagination a:hover {
+            background: #E63946;
+            color: white;
+            border-color: #E63946;
+        }
+        
+        .pagination .current {
+            background: #E63946;
+            color: white;
+            border-color: #E63946;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .timestamp {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+        
+        .ip-address {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item active">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+            </a>
+        </nav>
+    </aside>
+    
+    <main class="main-content">
+        <div class="page-header">
+            <h1>📋 Activity Log</h1>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                ← Back to Dashboard
+            </a>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h3>🔍 Filter Activity Logs</h3>
+            <form method="get" action="{% url 'admin_activity_log' %}">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="action">Action Type</label>
+                        <select name="action" id="action">
+                            <option value="">All Actions</option>
+                            {% for action_code, action_name in action_choices %}
+                                <option value="{{ action_code }}" {% if action_filter == action_code %}selected{% endif %}>
+                                    {{ action_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="entity">Entity Type</label>
+                        <select name="entity" id="entity">
+                            <option value="">All Entities</option>
+                            {% for entity_code, entity_name in entity_choices %}
+                                <option value="{{ entity_code }}" {% if entity_filter == entity_code %}selected{% endif %}>
+                                    {{ entity_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="user">Username</label>
+                        <input type="text" name="user" id="user" value="{{ user_filter }}" placeholder="Search by username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date_from">Date From</label>
+                        <input type="date" name="date_from" id="date_from" value="{{ date_from }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date_to">Date To</label>
+                        <input type="date" name="date_to" id="date_to" value="{{ date_to }}">
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        🔍 Apply Filters
+                    </button>
+                    <a href="{% url 'admin_activity_log' %}" class="btn btn-secondary">
+                        🔄 Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Activity Log Table -->
+        <div class="card">
+            {% if logs %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Entity</th>
+                            <th>Description</th>
+                            <th>IP Address</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                            <tr>
+                                <td>#{{ log.id }}</td>
+                                <td>
+                                    <strong>{{ log.user.username }}</strong>
+                                    {% if log.user.first_name %}
+                                        <br><small>{{ log.user.first_name }} {{ log.user.last_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ log.action }}">
+                                        {% if log.action == 'create' %}➕{% endif %}
+                                        {% if log.action == 'update' %}✏️{% endif %}
+                                        {% if log.action == 'delete' %}🗑️{% endif %}
+                                        {% if log.action == 'login' %}🔓{% endif %}
+                                        {% if log.action == 'logout' %}🔒{% endif %}
+                                        {% if log.action == 'view' %}👁️{% endif %}
+                                        {{ log.get_action_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="entity-badge">
+                                        {{ log.get_entity_type_display }}
+                                        {% if log.entity_id %}#{{ log.entity_id }}{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ log.description }}</td>
+                                <td>
+                                    {% if log.ip_address %}
+                                        <span class="ip-address">{{ log.ip_address }}</span>
+                                    {% else %}
+                                        <span style="color: #adb5bd;">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="timestamp">
+                                        {{ log.created_at|date:"M d, Y" }}<br>
+                                        {{ log.created_at|time:"h:i A" }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="pagination">
+                        {% if page_obj.has_previous %}
+                            <a href="?page=1{% if action_filter %}&action={{ action_filter }}{% endif %}{% if entity_filter %}&entity={{ entity_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">« First</a>
+                            <a href="?page={{ page_obj.previous_page_number }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if entity_filter %}&entity={{ entity_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">‹ Previous</a>
+                        {% endif %}
+                        
+                        <span class="current">
+                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                        </span>
+                        
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if entity_filter %}&entity={{ entity_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Next ›</a>
+                            <a href="?page={{ page_obj.paginator.num_pages }}{% if action_filter %}&action={{ action_filter }}{% endif %}{% if entity_filter %}&entity={{ entity_filter }}{% endif %}{% if user_filter %}&user={{ user_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">Last »</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h3>No Activity Logs Found</h3>
+                    <p>No activity logs match your filter criteria.</p>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+</html>

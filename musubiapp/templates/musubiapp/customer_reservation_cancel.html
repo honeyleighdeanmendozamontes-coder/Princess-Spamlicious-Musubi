@@ -1,0 +1,206 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Reservation - Spamlicious Musubi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            padding: 40px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .cancel-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .warning-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .warning-message h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .warning-message p {
+            color: #856404;
+            line-height: 1.8;
+        }
+        
+        .reservation-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1em;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        @media (max-width: 768px) {
+            .cancel-card {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .button-group {
+                flex-direction: column-reverse;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="cancel-card">
+            <div class="warning-icon">⚠️</div>
+            <h1>Cancel Reservation?</h1>
+            <p style="color: #6c757d; margin-bottom: 20px;">
+                Are you sure you want to cancel this reservation?
+            </p>
+            
+            <div class="reservation-info">
+                <div class="info-row">
+                    <span class="info-label">Reservation ID:</span>
+                    <span class="info-value">#{{ reservation.id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date:</span>
+                    <span class="info-value">{{ reservation.reservation_date|date:"F d, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Time:</span>
+                    <span class="info-value">{{ reservation.reservation_time|time:"h:i A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Guests:</span>
+                    <span class="info-value">{{ reservation.number_of_guests }} {{ reservation.number_of_guests|pluralize:"person,people" }}</span>
+                </div>
+            </div>
+            
+            <div class="warning-message">
+                <h3>⚠️ Important Notice</h3>
+                <p>
+                    <strong>This action cannot be undone.</strong> Once you cancel this reservation, 
+                    you will need to create a new reservation if you change your mind.
+                </p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="button-group">
+                    <a href="{% url 'customer_reservations' %}" class="btn btn-secondary">
+                        ← No, Keep Reservation
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        ✅ Yes, Cancel Reservation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

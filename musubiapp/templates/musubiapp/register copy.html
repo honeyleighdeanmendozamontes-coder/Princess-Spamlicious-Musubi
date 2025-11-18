@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <h2 class="card-title">Join Spamlicious Musubi 🍙</h2>
+                        <p class="text-muted">Create an account to start ordering delicious musubi</p>
+                    </div>
+
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- User Form Fields -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Account Information</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Username *</label>
+                                    {{ user_form.username }}
+                                    {% if user_form.username.errors %}
+                                    <div class="text-danger small">{{ user_form.username.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Email *</label>
+                                    {{ user_form.email }}
+                                    {% if user_form.email.errors %}
+                                    <div class="text-danger small">{{ user_form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Password *</label>
+                                    {{ user_form.password }}
+                                    {% if user_form.password.errors %}
+                                    <div class="text-danger small">{{ user_form.password.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Confirm Password *</label>
+                                    {{ user_form.password_confirm }}
+                                    {% if user_form.password_confirm.errors %}
+                                    <div class="text-danger small">{{ user_form.password_confirm.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Customer Form Fields -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3">Profile Information</h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">First Name</label>
+                                    {{ user_form.first_name }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    {{ user_form.last_name }}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Phone *</label>
+                                    {{ customer_form.phone }}
+                                    {% if customer_form.phone.errors %}
+                                    <div class="text-danger small">{{ customer_form.phone.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Address *</label>
+                                    {{ customer_form.address }}
+                                    {% if customer_form.address.errors %}
+                                    <div class="text-danger small">{{ customer_form.address.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                Create Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="text-center">
+                        <p class="mb-0">Already have an account?</p>
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary mt-2">
+                            Login Instead
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,617 @@
+<!-- musubiapp/templates/musubiapp/admin_order_detail.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order #{{ order.id }} - Spamlicious Musubi</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-section {
+            margin-bottom: 10px;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #ff6b6b;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #2c3e50;
+        }
+        
+        .user-profile-sidebar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .user-info-sidebar {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        .user-role {
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
+        
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #ff5252;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #ff5252;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            border-color: #ff6b6b;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-preparing {
+            background: #cce7ff;
+            color: #004085;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .messages {
+            margin: 20px 0;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .order-details {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .order-status-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: all 0.5s ease;
+        }
+        
+        .order-status-form.highlight {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 3px solid #ffc107;
+            box-shadow: 0 8px 25px rgba(255, 193, 7, 0.3);
+            animation: pulse-highlight 2s ease-in-out;
+        }
+        
+        @keyframes pulse-highlight {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+        
+        .status-update-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #28a745;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            animation: fadeInDown 0.5s ease-out;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .order-items {
+            margin: 30px 0;
+        }
+        
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .item-info {
+            flex: 2;
+        }
+        
+        .item-quantity {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .item-price {
+            flex: 1;
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .order-totals {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        
+        .total-row.grand-total {
+            border-top: 2px solid #dee2e6;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 10px;
+            padding-top: 15px;
+        }
+        
+        .customer-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item active">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+        
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Order #{{ order.id }}</h1>
+            <p>View and manage order details</p>
+        </div>
+        
+        <!-- Messages -->
+        <div class="messages">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Back Button -->
+        <div style="margin: 20px 0;">
+            <a href="{% url 'admin_order_list' %}" class="btn btn-secondary">
+                ← Back to Orders
+            </a>
+        </div>
+
+        <!-- Order Details -->
+        <div class="order-details">
+            <!-- Order Header -->
+            <div class="order-header">
+                <div class="order-info">
+                    <h2>Order #{{ order.id }}</h2>
+                    <p><strong>Customer:</strong> {{ order.customer.user.username }}</p>
+                    <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y H:i" }}</p>
+                    <p><strong>Current Status:</strong> 
+                        <span class="status-badge status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+                
+                <!-- Status Update Form -->
+                <div class="order-status-form{% if highlight_status %} highlight{% endif %}" id="statusUpdateForm">
+                    {% if highlight_status %}
+                    <div class="status-update-indicator">
+                        📝 Ready to update order status
+                    </div>
+                    {% endif %}
+                    <h3>Update Status</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <select name="status" class="form-control" style="margin-bottom: 10px;">
+                                <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="preparing" {% if order.status == 'preparing' %}selected{% endif %}>Preparing</option>
+                                <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>Completed</option>
+                                <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+                            💾 Update Status
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Customer Information -->
+            <div class="customer-info">
+                <h3>Customer & Delivery Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Customer Name:</span><br>
+                        {{ order.customer.user.first_name }} {{ order.customer.user.last_name }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span><br>
+                        {{ order.customer.user.email }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Phone:</span><br>
+                        {{ order.customer.phone|default:"Not provided" }}
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Delivery Address:</span><br>
+                        {{ order.delivery_address }}
+                    </div>
+                </div>
+                {% if order.notes %}
+                <div class="info-item" style="margin-top: 15px;">
+                    <span class="info-label">Order Notes:</span><br>
+                    {{ order.notes }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Order Items -->
+            <div class="order-items">
+                <h3>Order Items ({{ order_items|length }})</h3>
+                {% for item in order_items %}
+                <div class="item-row">
+                    <div class="item-info">
+                        <strong>{{ item.product.name }}</strong>
+                        <br>
+                        <small>{{ item.product.description|truncatewords:10 }}</small>
+                    </div>
+                    <div class="item-quantity">
+                        {{ item.quantity }} x
+                    </div>
+                    <div class="item-price">
+                        ₱{{ item.price }} each
+                    </div>
+                    <div class="item-price">
+                        <strong>₱{{ item.get_total }}</strong>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Order Totals -->
+            <div class="order-totals">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span>₱{{ subtotal }}</span>
+                </div>
+                {% if order.discount_amount and order.discount_amount > 0 %}
+                <div class="total-row">
+                    <span>Discount{{ order.discount_details|default:''|yesno:": ," }}{{ order.discount_details }}</span>
+                    <span>-₱{{ order.discount_amount }}</span>
+                </div>
+                {% endif %}
+                <div class="total-row">
+                    <span>Delivery Fee:</span>
+                    <span>₱{{ delivery_fee }}</span>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Total Amount:</span>
+                    <span>₱{{ order.total_amount }}</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% if highlight_status %}
+    <script>
+        // Auto-scroll to status update form when accessed from notification
+        document.addEventListener('DOMContentLoaded', function() {
+            const statusForm = document.getElementById('statusUpdateForm');
+            if (statusForm) {
+                // Smooth scroll to the status update form
+                setTimeout(() => {
+                    statusForm.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'center' 
+                    });
+                    
+                    // Focus on the status select dropdown
+                    const statusSelect = statusForm.querySelector('select[name="status"]');
+                    if (statusSelect) {
+                        statusSelect.focus();
+                    }
+                }, 500);
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

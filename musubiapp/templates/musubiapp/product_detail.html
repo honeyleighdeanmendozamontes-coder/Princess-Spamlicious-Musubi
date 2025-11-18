@@ -1,0 +1,273 @@
+{% extends 'musubiapp/base.html' %}
+
+{% block content %}
+<style>
+    .product-detail-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+    
+    .product-detail-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        padding: 40px;
+    }
+    
+    .product-image-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 40px;
+        min-height: 400px;
+    }
+    
+    .product-image {
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 10px;
+    }
+    
+    .no-image-placeholder {
+        text-align: center;
+        color: #999;
+    }
+    
+    .no-image-placeholder .icon {
+        font-size: 100px;
+        margin-bottom: 20px;
+    }
+    
+    .product-info-section {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .product-title {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+    
+    .product-description {
+        font-size: 1.1em;
+        color: #666;
+        line-height: 1.8;
+        margin-bottom: 25px;
+    }
+    
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .stars {
+        color: #FFB703;
+        font-size: 1.2em;
+    }
+    
+    .rating-text {
+        color: #666;
+        font-size: 0.95em;
+    }
+    
+    .product-price {
+        font-size: 3em;
+        font-weight: 700;
+        color: #E63946;
+        margin-bottom: 20px;
+    }
+    
+    .stock-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+    
+    .stock-status.in-stock {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+    
+    .stock-status.out-of-stock {
+        background: #f8d7da;
+        color: #842029;
+    }
+    
+    .product-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: auto;
+    }
+    
+    .btn-detail {
+        flex: 1;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .btn-add-cart {
+        background: linear-gradient(135deg, #E63946, #C1121F);
+        color: white;
+        box-shadow: 0 4px 15px rgba(230,57,70,0.4);
+    }
+    
+    .btn-add-cart:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(230,57,70,0.5);
+    }
+    
+    .btn-add-cart:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .btn-back {
+        background: #f8f9fa;
+        color: #2c3e50;
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-back:hover {
+        background: #e9ecef;
+        border-color: #adb5bd;
+    }
+    
+    .product-meta {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .meta-label {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .meta-value {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    @media (max-width: 768px) {
+        .product-detail-card {
+            grid-template-columns: 1fr;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        .product-title {
+            font-size: 1.8em;
+        }
+        
+        .product-price {
+            font-size: 2em;
+        }
+        
+        .product-actions {
+            flex-direction: column;
+        }
+        
+        .product-meta {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="product-detail-container">
+    <div class="product-detail-card">
+        <!-- Product Image Section -->
+        <div class="product-image-section">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+            {% else %}
+                <div class="no-image-placeholder">
+                    <div class="icon">📷</div>
+                    <p>No Image Available</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Info Section -->
+        <div class="product-info-section">
+            <div>
+                <h1 class="product-title">{{ product.name }}</h1>
+                
+                <div class="product-rating">
+                    <div class="stars">⭐⭐⭐⭐⭐</div>
+                    <span class="rating-text">(Anonymous Customer)</span>
+                </div>
+                
+                <p class="product-description">{{ product.description }}</p>
+                
+                <div class="product-price">₱{{ product.price|floatformat:2 }}</div>
+                
+                {% if product.stock > 0 %}
+                    <div class="stock-status in-stock">
+                        ✅ In Stock - Ready to Order!
+                    </div>
+                {% else %}
+                    <div class="stock-status out-of-stock">
+                        ❌ Out of Stock
+                    </div>
+                {% endif %}
+                
+                <div class="product-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Category</span>
+                        <span class="meta-value">{{ product.category|default:"Musubi" }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Available Stock</span>
+                        <span class="meta-value">{{ product.stock }} units</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-actions">
+                <a href="{% url 'product_list' %}" class="btn-detail btn-back" style="width: 100%;">
+                    ← Back to Menu
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Reservation - Spamlicious Musubi Admin</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #2c3e50;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .warning-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            color: #dc3545;
+        }
+        
+        h1 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .warning-message {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .warning-message h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .warning-message p {
+            color: #856404;
+            line-height: 1.8;
+        }
+        
+        .reservation-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1em;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        
+        .badge-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-confirmed {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .badge-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .badge-completed {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header p,
+            .menu-item span:not(.menu-icon) {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+            }
+            
+            .delete-card {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .button-group {
+                flex-direction: column-reverse;
+            }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_product_list' %}" class="menu-item">
+                <span class="menu-icon">🍱</span>
+                <span>Products</span>
+            </a>
+            <a href="{% url 'admin_order_list' %}" class="menu-item">
+                <span class="menu-icon">📦</span>
+                <span>Orders</span>
+            </a>
+            <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                <span class="menu-icon">👥</span>
+                <span>Customers</span>
+            </a>
+            <a href="{% url 'admin_reservation_list' %}" class="menu-item active">
+                <span class="menu-icon">📅</span>
+                <span>Reservations</span>
+            </a>
+            <a href="{% url 'admin_messages' %}" class="menu-item">
+                <span class="menu-icon">💬</span>
+                <span>Messages</span>
+            </a>
+            <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                <span class="menu-icon">📋</span>
+                <span>Activity Log</span>
+            </a>
+        </nav>
+    </aside>
+    
+    <main class="main-content">
+        <div class="delete-card">
+            <div class="warning-icon">⚠️</div>
+            <h1>Delete Reservation?</h1>
+            <p style="color: #6c757d; margin-bottom: 20px;">
+                Are you sure you want to delete this reservation? This action cannot be undone.
+            </p>
+            
+            <div class="reservation-info">
+                <div class="info-row">
+                    <span class="info-label">Reservation ID:</span>
+                    <span class="info-value">#{{ reservation.id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Customer:</span>
+                    <span class="info-value">{{ reservation.customer.user.username }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Date:</span>
+                    <span class="info-value">{{ reservation.reservation_date|date:"F d, Y" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Time:</span>
+                    <span class="info-value">{{ reservation.reservation_time|time:"h:i A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Guests:</span>
+                    <span class="info-value">{{ reservation.number_of_guests }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <span class="status-badge badge-{{ reservation.status }}">
+                        {{ reservation.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="warning-message">
+                <h3>⚠️ Warning</h3>
+                <p>
+                    <strong>This action is permanent and cannot be undone.</strong> 
+                    All reservation data will be permanently deleted from the system.
+                    The customer will not be automatically notified of this deletion.
+                </p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="button-group">
+                    <a href="{% url 'admin_reservation_list' %}" class="btn btn-secondary">
+                        ← Cancel, Keep Reservation
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        🗑️ Yes, Delete Reservation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html>

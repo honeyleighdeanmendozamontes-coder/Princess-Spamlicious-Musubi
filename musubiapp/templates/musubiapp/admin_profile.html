@@ -1,0 +1,713 @@
+<!-- templates/musubiapp/admin_profile.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Profile - Admin Dashboard</title>
+    {% load static %}
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="stylesheet" href="{% static 'musubiapp/css/design-system.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: #1D3557;
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+            text-align: center;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #E63946;
+        }
+        
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: #E63946;
+        }
+        
+        .menu-icon {
+            margin-right: 12px;
+            font-size: 1.3em;
+            width: 25px;
+        }
+        
+        /* Floating Notification Button */
+        .floating-notification-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #457B9D, #1D3557);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            box-shadow: 0 6px 20px rgba(69,123,157,0.5);
+            transition: all 0.3s ease;
+            z-index: 1001;
+            text-decoration: none;
+        }
+        
+        .floating-notification-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(69,123,157,0.6);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #fff;
+            color: #E63946;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            font-weight: 800;
+            border: 3px solid #E63946;
+            animation: pulse-badge 2s infinite;
+        }
+        
+        @keyframes pulse-badge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Floating Message Button */
+        .floating-message-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            box-shadow: 0 6px 20px rgba(230,57,70,0.5);
+            transition: all 0.3s ease;
+            z-index: 1001;
+            text-decoration: none;
+        }
+        
+        .floating-message-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(230,57,70,0.6);
+        }
+        
+        /* Profile Dropdown Button */
+        .profile-dropdown-btn {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.3s;
+            z-index: 1002;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .profile-dropdown-btn:hover {
+            background: #e0e0e0;
+            transform: scale(1.05);
+        }
+        
+        .profile-dropdown-menu {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            min-width: 220px;
+            z-index: 1002;
+            display: none;
+            overflow: hidden;
+        }
+        
+        .profile-dropdown-menu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .profile-dropdown-header {
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .profile-avatar-dropdown {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: white;
+            color: #E63946;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0 auto 10px;
+            border: 3px solid white;
+        }
+        
+        .profile-dropdown-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+        }
+        
+        .profile-dropdown-header p {
+            margin: 5px 0 0;
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+        
+        .profile-dropdown-body {
+            padding: 10px 0;
+        }
+        
+        .profile-dropdown-item {
+            display: block;
+            padding: 12px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        
+        .profile-dropdown-item:hover {
+            background: #f8f9fa;
+            border-left-color: #E63946;
+            padding-left: 25px;
+        }
+        
+        .profile-dropdown-footer {
+            padding: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .profile-logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: #E63946;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .profile-logout-btn:hover {
+            background: #C1121F;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 40px;
+        }
+        
+        .page-header {
+            margin-bottom: 40px;
+        }
+        
+        .page-header h1 {
+            font-size: 2.5em;
+            color: #1D3557;
+            margin-bottom: 10px;
+        }
+        
+        .page-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        /* Profile Card */
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            color: #E63946;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            border: 5px solid white;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        .profile-header h2 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .profile-header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .profile-body {
+            padding: 40px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 4px solid #E63946;
+        }
+        
+        .info-section h3 {
+            color: #1D3557;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .info-value {
+            color: #1D3557;
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 1em;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #E63946, #C1121F);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230,57,70,0.4);
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #1D3557;
+            border: 2px solid #1D3557;
+        }
+        
+        .btn-secondary:hover {
+            background: #1D3557;
+            color: white;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+        
+        .stat-card h3 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .stat-card.red h3 { color: #E63946; }
+        .stat-card.blue h3 { color: #457B9D; }
+        .stat-card.green h3 { color: #06D6A0; }
+        .stat-card.amber h3 { color: #FFB703; }
+        
+        .stat-card p {
+            color: #666;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+            }
+            
+            .sidebar-header h2,
+            .sidebar-header p,
+            .menu-item span:not(.menu-icon) {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 70px;
+                padding: 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>🍙 Spamlicious</h2>
+            <p>Admin Panel</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="menu-section">
+                <a href="{% url 'admin_dashboard' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'admin_product_list' %}" class="menu-item">
+                    <span class="menu-icon">🍱</span>
+                    <span>Products</span>
+                </a>
+                <a href="{% url 'admin_order_list' %}" class="menu-item">
+                    <span class="menu-icon">📦</span>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'admin_customer_list' %}" class="menu-item">
+                    <span class="menu-icon">👥</span>
+                    <span>Customers</span>
+                </a>
+                <a href="{% url 'admin_reservation_list' %}" class="menu-item">
+                    <span class="menu-icon">📅</span>
+                    <span>Reservations</span>
+                </a>
+                <a href="{% url 'admin_messages' %}" class="menu-item">
+                    <span class="menu-icon">💬</span>
+                    <span>Messages</span>
+                </a>
+                <a href="{% url 'admin_activity_log' %}" class="menu-item">
+                    <span class="menu-icon">📋</span>
+                    <span>Activity Log</span>
+                </a>
+                <a href="{% url 'admin_analytics' %}" class="menu-item">
+                    <span class="menu-icon">📊</span>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    
+    <!-- Profile Dropdown Button -->
+    <button class="profile-dropdown-btn" onclick="toggleProfileDropdown()">
+        👤
+    </button>
+    
+    <!-- Profile Dropdown Menu -->
+    <div class="profile-dropdown-menu" id="profileDropdown">
+        <div class="profile-dropdown-header">
+            <div class="profile-avatar-dropdown">{{ user.username|slice:":1"|upper }}</div>
+            <h3>{{ user.username }}</h3>
+            <p>Administrator</p>
+        </div>
+        <div class="profile-dropdown-body">
+            <a href="{% url 'profile' %}" class="profile-dropdown-item">👤 My Profile</a>
+            <a href="{% url 'admin_messages' %}" class="profile-dropdown-item">💬 Messages</a>
+        </div>
+        <div class="profile-dropdown-footer">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="profile-logout-btn">🚪 Logout</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Floating Notification Button -->
+    <a href="{% url 'admin_notifications' %}" class="floating-notification-btn">
+        🔔
+        {% if unread_notifications_count > 0 %}
+        <span class="notification-badge">{{ unread_notifications_count }}</span>
+        {% endif %}
+    </a>
+    
+    <!-- Floating Message Button -->
+    <a href="{% url 'admin_messages' %}" class="floating-message-btn">
+        💬
+    </a>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1>👤 My Profile</h1>
+            <p>Manage your administrator account information</p>
+        </div>
+        
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-header">
+                <div class="profile-avatar">{{ user.username|slice:":1"|upper }}</div>
+                <h2>{{ user.get_full_name|default:user.username }}</h2>
+                <p>Administrator Account</p>
+            </div>
+            
+            <div class="profile-body">
+                <div class="info-grid">
+                    <!-- Account Information -->
+                    <div class="info-section">
+                        <h3>👤 Account Information</h3>
+                        <div class="info-item">
+                            <span class="info-label">Username</span>
+                            <span class="info-value">{{ user.username }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value">{{ user.email|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">First Name</span>
+                            <span class="info-value">{{ user.first_name|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Name</span>
+                            <span class="info-value">{{ user.last_name|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Role</span>
+                            <span class="info-value" style="color: #E63946; font-weight: 700;">Administrator</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Details -->
+                    <div class="info-section">
+                        <h3>📅 Account Details</h3>
+                        <div class="info-item">
+                            <span class="info-label">Member Since</span>
+                            <span class="info-value">{{ user.date_joined|date:"F j, Y" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Login</span>
+                            <span class="info-value">{{ user.last_login|date:"F j, Y - g:i A"|default:"Never" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Account Status</span>
+                            <span class="info-value" style="color: #06D6A0;">✅ Active</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">{{ customer.phone|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Address</span>
+                            <span class="info-value">{{ customer.address|default:"Not provided" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{% url 'edit_profile' %}" class="btn btn-primary">✏️ Edit Profile</a>
+                    <a href="{% url 'change_password' %}" class="btn btn-secondary">🔒 Change Password</a>
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">📊 Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Section -->
+        <div class="page-header" style="margin-top: 40px;">
+            <h2 style="font-size: 1.8em; color: #1D3557;">📊 System Overview</h2>
+            <p style="color: #666;">Quick statistics from your admin account</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card red">
+                <h3>{{ total_orders|default:0 }}</h3>
+                <p>Total Orders</p>
+            </div>
+            <div class="stat-card blue">
+                <h3>{{ total_customers|default:0 }}</h3>
+                <p>Total Customers</p>
+            </div>
+            <div class="stat-card green">
+                <h3>{{ total_products|default:0 }}</h3>
+                <p>Total Products</p>
+            </div>
+            <div class="stat-card amber">
+                <h3>{{ pending_orders|default:0 }}</h3>
+                <p>Pending Orders</p>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Profile Dropdown Toggle
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('active');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const button = document.querySelector('.profile-dropdown-btn');
+            
+            if (!dropdown.contains(event.target) && !button.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+        
+        // Close dropdown on ESC key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.getElementById('profileDropdown').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+{% extends 'musubiapp/base.html' %}
+{% load static %}
+
+{% block title %}Feedback - Spamlicious Musubi{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="page-header">
+        <h1>💬 Send Us Your Feedback</h1>
+        <p>We value your opinion! Let us know how we can improve.</p>
+    </div>
+
+    <!-- Feedback Form -->
+    <div class="feedback-form-card">
+        <h2>Submit New Feedback</h2>
+        <form method="post" action="{% url 'submit_feedback' %}" class="feedback-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="feedback_type">Feedback Type *</label>
+                <select name="feedback_type" id="feedback_type" class="form-control" required>
+                    <option value="general">General Feedback</option>
+                    <option value="suggestion">Suggestion</option>
+                    <option value="complaint">Complaint</option>
+                    <option value="compliment">Compliment</option>
+                    <option value="bug_report">Bug Report</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Subject *</label>
+                <input type="text" name="subject" id="subject" class="form-control" 
+                       placeholder="Brief description of your feedback" required maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label for="message">Your Message *</label>
+                <textarea name="message" id="message" class="form-control" rows="6" 
+                          placeholder="Tell us more about your feedback..." required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                📤 Submit Feedback
+            </button>
+        </form>
+    </div>
+
+    <!-- Previous Feedback -->
+    <div class="feedback-history">
+        <h2>Your Previous Feedback</h2>
+        
+        {% if feedbacks %}
+            <div class="feedback-list">
+                {% for feedback in feedbacks %}
+                <div class="feedback-item">
+                    <div class="feedback-header">
+                        <div class="feedback-info">
+                            <span class="feedback-type-badge feedback-type-{{ feedback.feedback_type }}">
+                                {{ feedback.get_feedback_type_display }}
+                            </span>
+                            <span class="feedback-status-badge status-{{ feedback.status }}">
+                                {{ feedback.get_status_display }}
+                            </span>
+                        </div>
+                        <span class="feedback-date">{{ feedback.created_at|date:"M d, Y - h:i A" }}</span>
+                    </div>
+                    
+                    <h3>{{ feedback.subject }}</h3>
+                    <p class="feedback-message">{{ feedback.message }}</p>
+                    
+                    {% if feedback.admin_response %}
+                    <div class="admin-response">
+                        <div class="response-header">
+                            <strong>📢 Admin Response:</strong>
+                            <span class="response-date">{{ feedback.responded_at|date:"M d, Y - h:i A" }}</span>
+                        </div>
+                        <p>{{ feedback.admin_response }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-feedback">
+                <p>You haven't submitted any feedback yet.</p>
+                <p>Use the form above to share your thoughts with us!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .content-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .page-header h1 {
+        font-size: 2.5em;
+        color: #1D3557;
+        margin-bottom: 10px;
+    }
+
+    .page-header p {
+        font-size: 1.2em;
+        color: #666;
+    }
+
+    .feedback-form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 40px;
+    }
+
+    .feedback-form-card h2 {
+        color: #1D3557;
+        margin-bottom: 30px;
+        font-size: 1.8em;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #1D3557;
+        font-size: 1.1em;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: all 0.3s;
+        font-family: inherit;
+    }
+
+    .form-control:focus {
+        border-color: #E63946;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.1);
+    }
+
+    .btn {
+        padding: 15px 40px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1em;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #E63946, #C1121F);
+        color: white;
+        box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #C1121F, #A01018);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+    }
+
+    .feedback-history {
+        margin-top: 50px;
+    }
+
+    .feedback-history h2 {
+        color: #1D3557;
+        margin-bottom: 25px;
+        font-size: 1.8em;
+    }
+
+    .feedback-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .feedback-item {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: all 0.3s;
+    }
+
+    .feedback-item:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .feedback-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .feedback-info {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .feedback-type-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        color: white;
+    }
+
+    .feedback-type-general { background: #457B9D; }
+    .feedback-type-suggestion { background: #06D6A0; }
+    .feedback-type-complaint { background: #E63946; }
+    .feedback-type-compliment { background: #FFB703; }
+    .feedback-type-bug_report { background: #6C757D; }
+
+    .feedback-status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        color: white;
+    }
+
+    .status-new { background: #FFB703; }
+    .status-in_review { background: #457B9D; }
+    .status-resolved { background: #06D6A0; }
+    .status-closed { background: #6C757D; }
+
+    .feedback-date {
+        color: #999;
+        font-size: 0.9em;
+    }
+
+    .feedback-item h3 {
+        color: #1D3557;
+        margin-bottom: 10px;
+        font-size: 1.3em;
+    }
+
+    .feedback-message {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .admin-response {
+        background: #f8f9fa;
+        border-left: 4px solid #E63946;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .response-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+
+    .response-header strong {
+        color: #E63946;
+        font-size: 1.1em;
+    }
+
+    .response-date {
+        color: #999;
+        font-size: 0.85em;
+    }
+
+    .admin-response p {
+        color: #333;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .no-feedback {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .no-feedback p {
+        color: #999;
+        font-size: 1.1em;
+        margin: 10px 0;
+    }
+
+    @media (max-width: 768px) {
+        .content-wrapper {
+            padding: 20px 15px;
+        }
+
+        .feedback-form-card {
+            padding: 25px 20px;
+        }
+
+        .page-header h1 {
+            font-size: 2em;
+        }
+
+        .feedback-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

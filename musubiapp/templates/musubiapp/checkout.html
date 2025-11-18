@@ -1,0 +1,651 @@
+<!-- musubiapp/templates/musubiapp/checkout.html -->
+{% extends 'musubiapp/base.html' %}
+
+{% block title %}Checkout - Spamlicious Musubi{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="checkout-section">
+        <div class="checkout-header">
+            <h2>🛍️ Checkout</h2>
+            <p>Complete your order</p>
+        </div>
+
+        <!-- Enhanced Order Summary with Product Details -->
+        <div class="checkout-card">
+            <h3>📦 Order Details</h3>
+            <div class="detailed-order-items">
+                {% for item in cart_items %}
+                <div class="detailed-order-item">
+                    <div class="item-image">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="product-thumb">
+                        {% else %}
+                            <div class="product-thumb-placeholder">🍙</div>
+                        {% endif %}
+                    </div>
+                    <div class="item-details">
+                        <h4 class="item-name">{{ item.product.name }}</h4>
+                        <p class="item-description">{{ item.product.description|truncatewords:10 }}</p>
+                        <div class="item-pricing">
+                            <span class="item-price">₱{{ item.product.price }} each</span>
+                            <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                        </div>
+                    </div>
+                    <div class="item-total">
+                        <strong>₱{{ item.get_total }}</strong>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="order-summary-totals">
+                <div class="summary-line">
+                    <span>Subtotal:</span>
+                    <span>₱{{ subtotal }}</span>
+                </div>
+                <div class="summary-line">
+                    <span>Delivery Fee:</span>
+                    <span>₱{{ delivery_fee }}</span>
+                </div>
+                {% if discount_amount > 0 %}
+                <div class="summary-line discount">
+                    <span>Discount:</span>
+                    <span>-₱{{ discount_amount }}</span>
+                </div>
+                {% endif %}
+                <div class="summary-line total">
+                    <span><strong>Total Amount:</strong></span>
+                    <span><strong>₱{{ grand_total }}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Delivery Information -->
+        <div class="checkout-card">
+            <h3>🚚 Delivery Information</h3>
+            <form method="post" id="checkoutForm">
+                {% csrf_token %}
+                
+                <!-- Current Address Display -->
+                <div class="current-address-section">
+                    <div class="address-header">
+                        <h4>📍 Current Delivery Address</h4>
+                        <button type="button" class="btn-edit-address" onclick="toggleAddressEdit()">
+                            ✏️ Edit Address
+                        </button>
+                    </div>
+                    
+                    <div class="address-display" id="addressDisplay">
+                        {% if customer_address %}
+                            <div class="current-address">
+                                <p>{{ customer_address }}</p>
+                            </div>
+                        {% else %}
+                            <div class="no-address">
+                                <p>No address saved. Please add your delivery address.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="address-edit" id="addressEdit" style="display: none;">
+                        <div class="form-group">
+                            <label for="delivery_address" class="form-label">Update Delivery Address *</label>
+                            <textarea id="delivery_address" name="delivery_address" class="form-control" 
+                                      rows="3" placeholder="Enter your complete delivery address" required>{{ customer_address }}</textarea>
+                        </div>
+                        <div class="address-edit-actions">
+                            <button type="button" class="btn btn-secondary" onclick="cancelAddressEdit()">Cancel</button>
+                            <button type="button" class="btn btn-primary" onclick="saveAddressEdit()">Save Address</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="payment-section">
+                    <h4>💰 Payment Method</h4>
+                    <div class="payment-info-box">
+                        <div class="cod-only-notice">
+                            <div class="cod-icon">💰</div>
+                            <div class="cod-details">
+                                <h5>Cash on Delivery (COD) Only</h5>
+                                <p>We currently accept cash payments upon delivery. Please have the exact amount ready when your order arrives.</p>
+                                <ul class="cod-benefits">
+                                    <li>✅ No advance payment required</li>
+                                    <li>✅ Pay when you receive your order</li>
+                                    <li>✅ Inspect your musubi before paying</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <input type="hidden" name="payment_method" value="cod">
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="checkout-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        🛍️ Place Order
+                    </button>
+                    <a href="{% url 'view_cart' %}" class="btn btn-outline">
+                        ← Back to Cart
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.checkout-section {
+    padding: 40px 0;
+}
+
+.checkout-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.checkout-header h2 {
+    font-size: 2.5em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.checkout-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.order-items {
+    margin: 20px 0;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.order-totals {
+    border-top: 2px solid #e9ecef;
+    padding-top: 20px;
+}
+
+.total-line {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+}
+
+.grand-total {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ff6b6b;
+    border-top: 1px solid #e9ecef;
+    padding-top: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1em;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    border-color: #ff6b6b;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+}
+
+.payment-methods {
+    margin: 25px 0;
+}
+
+.payment-info-box {
+    background: #f8f9fa;
+    border: 2px solid #28a745;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.cod-only-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.cod-icon {
+    font-size: 2.5em;
+    flex-shrink: 0;
+}
+
+.cod-details h5 {
+    color: #28a745;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.cod-details p {
+    color: #6c757d;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.cod-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cod-benefits li {
+    color: #495057;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.checkout-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    cursor: pointer;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: #ff6b6b;
+    color: white;
+    border: 2px solid #ff6b6b;
+}
+
+.btn-primary:hover {
+    background: #ff5252;
+    border-color: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.btn-outline {
+    background: transparent;
+    color: #ff6b6b;
+    border: 2px solid #ff6b6b;
+}
+
+.btn-outline:hover {
+    background: #ff6b6b;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* Enhanced Product Details */
+.detailed-order-items {
+    margin: 20px 0;
+}
+
+.detailed-order-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    background: #f8f9fa;
+}
+
+.item-image {
+    flex-shrink: 0;
+}
+
+.product-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+}
+
+.product-thumb-placeholder {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #E63946 0%, #C1121F 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    color: white;
+    border-radius: 8px;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-name {
+    color: #2c3e50;
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.item-description {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.item-pricing {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.item-price {
+    color: #28a745;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.item-quantity {
+    color: #495057;
+    font-size: 0.9em;
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.item-total {
+    color: #E63946;
+    font-size: 1.1em;
+    font-weight: 700;
+}
+
+/* Order Summary Totals */
+.order-summary-totals {
+    border-top: 2px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin: 12px 0;
+    font-size: 1em;
+}
+
+.summary-line.discount {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.summary-line.total {
+    font-size: 1.3em;
+    color: #E63946;
+    border-top: 1px solid #e9ecef;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+/* Address Section */
+.current-address-section {
+    margin: 25px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+}
+
+.address-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.address-header h4 {
+    color: #2c3e50;
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.btn-edit-address {
+    background: #E63946;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-edit-address:hover {
+    background: #C1121F;
+    transform: translateY(-1px);
+}
+
+.current-address {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.current-address p {
+    margin: 0;
+    color: #495057;
+    line-height: 1.5;
+}
+
+.no-address {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ffeaa7;
+}
+
+.no-address p {
+    margin: 0;
+    color: #856404;
+    font-style: italic;
+}
+
+.address-edit-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: 2px solid #6c757d;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    border-color: #5a6268;
+}
+
+.payment-section {
+    margin: 30px 0;
+}
+
+@media (max-width: 768px) {
+    .detailed-order-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .item-pricing {
+        justify-content: center;
+    }
+    
+    .address-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .checkout-header h2 {
+        font-size: 2em;
+    }
+}
+
+@media (max-width: 768px) {
+    .row {
+        flex-direction: column;
+    }
+    
+    .checkout-header h2 {
+        font-size: 2em;
+    }
+}
+</style>
+
+<script>
+function toggleAddressEdit() {
+    const addressDisplay = document.getElementById('addressDisplay');
+    const addressEdit = document.getElementById('addressEdit');
+    
+    if (addressDisplay && addressEdit) {
+        addressDisplay.style.display = 'none';
+        addressEdit.style.display = 'block';
+    }
+}
+
+function cancelAddressEdit() {
+    const addressDisplay = document.getElementById('addressDisplay');
+    const addressEdit = document.getElementById('addressEdit');
+    
+    if (addressDisplay && addressEdit) {
+        addressDisplay.style.display = 'block';
+        addressEdit.style.display = 'none';
+    }
+}
+
+function saveAddressEdit() {
+    const addressTextarea = document.getElementById('delivery_address');
+    const currentAddressP = document.querySelector('.current-address p');
+    const noAddressDiv = document.querySelector('.no-address');
+    const currentAddressDiv = document.querySelector('.current-address');
+    
+    if (addressTextarea && addressTextarea.value.trim()) {
+        // Update the display
+        if (currentAddressP) {
+            currentAddressP.textContent = addressTextarea.value.trim();
+        } else if (noAddressDiv && currentAddressDiv) {
+            // Replace no-address with current-address
+            noAddressDiv.style.display = 'none';
+            currentAddressDiv.style.display = 'block';
+            currentAddressDiv.querySelector('p').textContent = addressTextarea.value.trim();
+        }
+        
+        // Hide edit form and show display
+        cancelAddressEdit();
+        
+        // Show success message
+        showAddressUpdateMessage('Address updated successfully!', 'success');
+    } else {
+        showAddressUpdateMessage('Please enter a valid address.', 'error');
+    }
+}
+
+function showAddressUpdateMessage(message, type) {
+    // Remove existing message
+    const existingMessage = document.querySelector('.address-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Create new message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `address-message alert alert-${type}`;
+    messageDiv.textContent = message;
+    messageDiv.style.marginTop = '10px';
+    messageDiv.style.padding = '10px';
+    messageDiv.style.borderRadius = '6px';
+    messageDiv.style.fontSize = '0.9em';
+    
+    if (type === 'success') {
+        messageDiv.style.background = '#d4edda';
+        messageDiv.style.color = '#155724';
+        messageDiv.style.border = '1px solid #c3e6cb';
+    } else {
+        messageDiv.style.background = '#f8d7da';
+        messageDiv.style.color = '#721c24';
+        messageDiv.style.border = '1px solid #f5c6cb';
+    }
+    
+    // Add to address section
+    const addressSection = document.querySelector('.current-address-section');
+    if (addressSection) {
+        addressSection.appendChild(messageDiv);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 3000);
+    }
+}
+
+// Form validation before submission
+document.addEventListener('DOMContentLoaded', function() {
+    const checkoutForm = document.getElementById('checkoutForm');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            const deliveryAddress = document.getElementById('delivery_address');
+            if (!deliveryAddress || !deliveryAddress.value.trim()) {
+                e.preventDefault();
+                showAddressUpdateMessage('Please provide a delivery address before placing your order.', 'error');
+                toggleAddressEdit();
+                return false;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
