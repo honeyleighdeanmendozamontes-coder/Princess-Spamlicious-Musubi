@@ -60,12 +60,35 @@ def customer_login(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
+            username_or_email = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
+
+            # Support login by email or username
+            login_username = username_or_email
+            if username_or_email and '@' in username_or_email:
+                try:
+                    from django.contrib.auth.models import User
+                    u = User.objects.get(email=username_or_email)
+                    login_username = u.username
+                except User.DoesNotExist:
+                    login_username = username_or_email  # will fail auth normally
+
+            user = authenticate(username=login_username, password=password)
             
             if user is not None:
-                # Check if user has a customer profile
+                # Allow superusers/staff to log in even without a Customer profile
+                if getattr(user, 'is_superuser', False) or getattr(user, 'is_staff', False):
+                    login(request, user)
+                    log_activity(
+                        user=user,
+                        action='login',
+                        entity_type='system',
+                        description=f'Admin/staff {user.username} logged in',
+                        request=request
+                    )
+                    return redirect('admin_dashboard')
+
+                # Otherwise, require a Customer profile for normal users
                 try:
                     customer = Customer.objects.get(user=user)
                     login(request, user)
@@ -82,9 +105,6 @@ def customer_login(request):
                     # Redirect based on role
                     if customer.role == 'admin':
                         return redirect('admin_dashboard')
-                    # Staff role disabled - redirect to menu instead
-                    # elif customer.role == 'staff':
-                    #     return redirect('staff_dashboard')
                     else:
                         return redirect('product_list')  # Redirect customers to menu
                         
