@@ -11,9 +11,9 @@ try:
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    username = "admin"
-    email = "admin@example.com"
-    password = "password123"
+    username = "adminhoney"
+    email = "adminhoney@gmail.com"
+    password = "password12345"
 
     if User.objects.filter(username=username).exists():
         print("Superuser already exists.")
