@@ -39,7 +39,13 @@ def customer_required(function=None):
 
 def staff_required(function=None):
     actual_decorator = user_passes_test(
-        lambda u: u.is_authenticated and hasattr(u, 'customer') and u.customer.role in ['staff', 'admin'],
+        lambda u: (
+            u.is_authenticated and (
+                getattr(u, 'is_staff', False) or getattr(u, 'is_superuser', False) or (
+                    hasattr(u, 'customer') and u.customer.role in ['staff', 'admin']
+                )
+            )
+        ),
         login_url='customer_login'
     )
     if function:
@@ -48,7 +54,13 @@ def staff_required(function=None):
 
 def admin_required(function=None):
     actual_decorator = user_passes_test(
-        lambda u: u.is_authenticated and hasattr(u, 'customer') and u.customer.role == 'admin',
+        lambda u: (
+            u.is_authenticated and (
+                getattr(u, 'is_superuser', False) or getattr(u, 'is_staff', False) or (
+                    hasattr(u, 'customer') and u.customer.role == 'admin'
+                )
+            )
+        ),
         login_url='customer_login'
     )
     if function:
