@@ -12,11 +12,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-*6=%%peyk*9sdd&-&7jd_kb-q+u)=y2et5a=4a8*k*b2bcr%12'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Control via env: set DJANGO_DEBUG=true locally; leave unset/false on Render
+DEBUG = os.environ.get('DJANGO_DEBUG', '').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',')
+# Fallback to Render hostname if ALLOWED_HOSTS not provided
+if not any(ALLOWED_HOSTS):
+    _render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+    if _render_host:
+        ALLOWED_HOSTS = [_render_host]
 
-
+CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o]
+if not CSRF_TRUSTED_ORIGINS:
+    host = os.environ.get('RENDER_EXTERNAL_HOSTNAME') or (ALLOWED_HOSTS[0] if ALLOWED_HOSTS and ALLOWED_HOSTS[0] else '')
+    if host:
+        CSRF_TRUSTED_ORIGINS = [f'https://{host}']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 
 INSTALLED_APPS = [
