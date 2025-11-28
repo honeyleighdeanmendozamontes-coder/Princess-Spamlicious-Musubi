@@ -984,15 +984,31 @@ def admin_product_edit(request, product_id):
         try:
             product.name = request.POST.get('name')
             product.description = request.POST.get('description')
-            product.price = request.POST.get('price')
-            product.bundle_price = request.POST.get('bundle_price')
-            product.stock = request.POST.get('stock')
+            
+            # Handle price - convert to Decimal or use 0
+            price_value = request.POST.get('price', '0').strip()
+            product.price = price_value if price_value else '0'
+            
+            # Handle bundle_price - can be empty (optional field)
+            bundle_price_value = request.POST.get('bundle_price', '').strip()
+            product.bundle_price = bundle_price_value if bundle_price_value else None
+            
+            # Handle stock - convert to int or use 0
+            stock_value = request.POST.get('stock', '0').strip()
+            product.stock = int(stock_value) if stock_value else 0
+            
             product.category = request.POST.get('category')
             product.is_active = request.POST.get('is_active') == 'on'
             
             # Handle image upload
             if 'image' in request.FILES:
                 product.image = request.FILES['image']
+            
+            # Validate before saving
+            if not product.name:
+                raise ValueError('Product name is required')
+            if product.price is None or product.price == '':
+                raise ValueError('Price is required')
             
             product.save()
             

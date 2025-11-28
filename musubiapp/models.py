@@ -29,8 +29,8 @@ class Product(models.Model):
     
     name = models.CharField(max_length=200)
     description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    bundle_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    price = models.IntegerField(default=0)
+    bundle_price = models.IntegerField(blank=True, null=True)
     stock = models.IntegerField(default=0)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='spam')
     image = models.ImageField(upload_to='products/', blank=True, null=True)
@@ -89,8 +89,8 @@ class Order(models.Model):
     ]
     
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.IntegerField(default=0)
+    discount_amount = models.IntegerField(default=0)
     discount_details = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='cod')

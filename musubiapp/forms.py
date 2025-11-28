@@ -10,9 +10,9 @@ class ProductForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '1', 'min': '0'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
-            'stock': forms.NumberInput(attrs={'class': 'form-control'}),
+            'stock': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
         }
 
 class UserRegistrationForm(forms.ModelForm):
@@ -104,7 +104,7 @@ class InventoryUpdateForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     quantity_change = forms.IntegerField(
-        widget=forms.NumberInput(attrs={'class': 'form-control'})
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '0'})
     )
     notes = forms.CharField(
         required=False, 
