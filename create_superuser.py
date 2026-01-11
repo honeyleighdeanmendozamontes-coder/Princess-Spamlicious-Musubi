@@ -10,20 +10,16 @@ try:
 
     from django.contrib.auth import get_user_model
 
-    User = get_user_model()
-    username = "adminhoney"
-    email = "adminhoney@gmail.com"
-    password = "password12345"
+USERNAME = "admin"
+EMAIL = "admin@example.com"
+PASSWORD = "Admin12345"  # change after login
 
-    if User.objects.filter(username=username).exists():
-        print("Superuser already exists.")
-    else:
-        # Ensure flags are set even if a custom user model overrides defaults
-        user = User.objects.create_superuser(
-            username=username,
-            email=email,
-            password=password,
-        )
+if not User.objects.filter(username=USERNAME).exists():
+    User.objects.create_superuser(
+        username=USERNAME,
+        email=EMAIL,
+        password=PASSWORD
+    )
         # In case the custom user model does not set these flags automatically
         changed = False
         if hasattr(user, "is_staff") and not getattr(user, "is_staff"):
