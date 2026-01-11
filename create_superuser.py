@@ -4,15 +4,17 @@ import sys
 # Set Django settings module
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "musubiproject.settings")
 
-try:
+
     import django
     django.setup()
 
     from django.contrib.auth import get_user_model
 
+User = get_user_model()
+
 USERNAME = "admin"
 EMAIL = "admin@example.com"
-PASSWORD = "Admin12345"  # change after login
+PASSWORD = "Admin12345"  # change later
 
 if not User.objects.filter(username=USERNAME).exists():
     User.objects.create_superuser(
