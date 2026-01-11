@@ -8,9 +8,9 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-USERNAME = "admin"
-EMAIL = "admin@example.com"
-PASSWORD = "Admin12345"
+USERNAME = "adminleigh"
+EMAIL = "adminleigh@example.com"
+PASSWORD = "Admin6789"
 
 if not User.objects.filter(username=USERNAME).exists():
     User.objects.create_superuser(
