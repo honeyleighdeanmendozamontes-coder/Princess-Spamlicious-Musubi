@@ -1,20 +1,16 @@
 import os
-import sys
+import django
 
-# Set Django settings module
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "musubiproject.settings")
+django.setup()
 
-
-    import django
-    django.setup()
-
-    from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 USERNAME = "admin"
 EMAIL = "admin@example.com"
-PASSWORD = "Admin12345"  # change later
+PASSWORD = "Admin12345"
 
 if not User.objects.filter(username=USERNAME).exists():
     User.objects.create_superuser(
@@ -22,18 +18,5 @@ if not User.objects.filter(username=USERNAME).exists():
         email=EMAIL,
         password=PASSWORD
     )
-        # In case the custom user model does not set these flags automatically
-        changed = False
-        if hasattr(user, "is_staff") and not getattr(user, "is_staff"):
-            user.is_staff = True
-            changed = True
-        if hasattr(user, "is_superuser") and not getattr(user, "is_superuser"):
-            user.is_superuser = True
-            changed = True
-        if changed:
-            user.save(update_fields=["is_staff", "is_superuser"])  # type: ignore[arg-type]
-        print("Superuser created successfully.")
-except Exception as e:
-    # Keep output minimal as requested; but exit non-zero so Render shows failure if needed
-    # You can inspect logs on Render if this fails
-    sys.exit(1)
+
+       
